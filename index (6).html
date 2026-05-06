@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Build Your Muscles — by Mel Miracle</title>
+<meta name="application-name" content="Build Your Muscles"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="BYM"/>
+<meta name="theme-color" content="#080808"/>
+<meta name="description" content="AI-powered life transformation platform by Mel Miracle"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23C9A84C'/><text y='.9em' font-size='70' x='15'>💪</text></svg>"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overscroll-behavior:none}
+body{background:#080808;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#e8e2d9;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#080808}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px}
+input,select,textarea{background:#111;border:1px solid #222;color:#e0d8cc;border-radius:10px;padding:12px 14px;font-size:15px;width:100%;outline:none;font-family:inherit;transition:border-color .2s;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:#C9A84C;box-shadow:0 0 0 2px #C9A84C15}
+select option{background:#111}
+button{cursor:pointer;font-family:inherit;border:none;outline:none;-webkit-tap-highlight-color:transparent}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .4s ease both}
+@media(max-width:640px){
+  .desktop-nav{display:none!important}
+  .mobile-bottom{display:flex!important}
+  .page-wrap{padding:14px 14px 90px 14px!important}
+}
+@media(min-width:641px){.mobile-bottom{display:none!important}}
+.mobile-bottom{position:fixed;bottom:0;left:0;right:0;background:#050505;border-top:1px solid #1a1a1a;display:none;padding:8px 0;padding-bottom:calc(8px + env(safe-area-inset-bottom));z-index:200}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+const G="#C9A84C";
+const GROQ_KEY="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";
+const GROQ_URL="https://api.groq.com/openai/v1/chat/completions";
+
+const QUOTES=[
+  {q:"Every rep you do today is an investment in tomorrow's you.",a:"Mel Miracle"},
+  {q:"I can do all things through Christ who strengthens me.",a:"Philippians 4:13"},
+  {q:"Your body is a temple. Honor it.",a:"1 Corinthians 6:19"},
+  {q:"Pain is temporary. The body you build is forever.",a:"Fitness Wisdom"},
+  {q:"Discipline is choosing between what you want now and what you want most.",a:"Abraham Lincoln"},
+  {q:"The only bad workout is the one that did not happen.",a:"Gym Truth"},
+  {q:"Sweat now. Shine later.",a:"Mel Miracle"},
+  {q:"Consistency beats perfection every single time.",a:"Mel Miracle"},
+  {q:"Strong is not a size. Strong is a mindset.",a:"Mel Miracle"},
+  {q:"Champions are made when nobody is watching.",a:"Gym Truth"},
+  {q:"Do something today that your future self will thank you for.",a:"Sean Patrick Flanery"},
+  {q:"Success is the sum of small efforts repeated day in and day out.",a:"Robert Collier"},
+  {q:"The secret to getting ahead is getting started.",a:"Mark Twain"},
+  {q:"Dream it. Believe it. Build it.",a:"Mel Miracle"},
+  {q:"Be stronger than your excuses.",a:"Mel Miracle"},
+  {q:"Wake up with determination. Go to bed with satisfaction.",a:"Daily Mindset"},
+  {q:"Fall seven times, stand up eight.",a:"Japanese Proverb"},
+  {q:"Make yourself proud.",a:"Mel Miracle"},
+  {q:"The body achieves what the mind believes.",a:"Napoleon Hill"},
+  {q:"A little progress each day adds up to big results.",a:"Mel Miracle"},
+  {q:"Train your mind as hard as you train your body.",a:"Mel Miracle"},
+  {q:"Your health is your wealth. Invest in it daily.",a:"Mel Miracle"},
+  {q:"Great things never come from comfort zones.",a:"Neil Strauss"},
+  {q:"Tough times never last, but tough people do.",a:"Robert H. Schuller"},
+  {q:"With God all things are possible.",a:"Matthew 19:26"},
+  {q:"Your future belongs to those who prepare for it today.",a:"Malcolm X"},
+  {q:"Be patient with yourself. Nothing in nature blooms all year.",a:"Wellness Truth"},
+  {q:"Rise up, start fresh, see the bright opportunity in each new day.",a:"Daily Motivation"},
+  {q:"You did not come this far to only come this far.",a:"Gym Wisdom"},
+  {q:"Be the energy you want to attract.",a:"Mindset"},
+];
+
+const WORKOUT_TYPES=[
+  {id:"ppl",name:"Push / Pull / Legs (PPL)",desc:"6-day split — most popular! Push=Chest/Shoulders/Triceps, Pull=Back/Biceps, Legs=Quads/Hamstrings/Calves. Repeat twice per week."},
+  {id:"full_body",name:"Full Body 3x/Week",desc:"Train whole body Mon/Wed/Fri. Best for beginners and busy people. Great muscle and strength gains."},
+  {id:"upper_lower",name:"Upper / Lower Split",desc:"4-day split. Upper body Mon/Thu, Lower body Tue/Fri. Good balance of volume and recovery."},
+  {id:"bro_split",name:"Bro Split (5 Day)",desc:"One muscle group per day. Chest Mon, Back Tue, Legs Wed, Shoulders Thu, Arms Fri."},
+  {id:"beginner",name:"Beginner Program",desc:"Simple 3-day full body. Learn all movements with proper form. Perfect for complete beginners."},
+  {id:"hiit",name:"HIIT & Cardio",desc:"High intensity intervals mixed with strength. Best for fat loss and improving fitness fast."},
+];
+
+const DIETS=["Standard Balanced","High Protein","Intermittent Fasting (16:8)","Keto / Low Carb","Vegan / Plant-Based","Vegetarian","Mediterranean","Anti-Inflammatory","PCOS Diet","Pregnancy Diet"];
+const CONDITIONS=["None","PCOS / PCOD","Pregnant (1st Trimester)","Pregnant (2nd Trimester)","Pregnant (3rd Trimester)","Knee Injury","Back Injury","Shoulder Injury","Hip Injury","Diabetes (Type 2)","Thyroid Issues","Other"];
+const GOALS=["Build Muscle","Lose Fat","Maintain & Tone","Improve Fitness","Post-Injury Recovery","Prenatal Fitness"];
+const EMOJIS=["💪","🙏","📚","💧","🏃","🥗","😴","⚽","🎯","📖","💻","🎵","🧘","🏋️","🌅","☕","🥤","🧠","📝","🎓","💼","🏊","🚴","🤸","🎨","🍎","🥦","🌙","⭐","🔥","✅","📿","🎸","✈️","💰","🌿","🧪","🏆","🦷","💡"];
+
+const BEGINNER_GUIDE=[
+  {title:"What is a REP?",icon:"🔢",content:"A rep (repetition) is one complete movement. One push-up from bottom to top and back = 1 rep. Doing 10 push-ups = 10 reps."},
+  {title:"What is a SET?",icon:"📋",content:"A set is a group of reps done together. 3 sets of 10 push-ups means you do 10, rest, then 10 more, rest, then 10 more. Total = 30."},
+  {title:"How does muscle grow?",icon:"💪",content:"Lifting creates tiny tears in muscle fibres. While you sleep, your body repairs them BIGGER and STRONGER. Rest days are as important as gym days!"},
+  {title:"What is Protein?",icon:"🥩",content:"Protein is the building block of muscle. Aim for 1.6-2g per kg of your bodyweight daily. Best sources: chicken, eggs, fish, lentils, Greek yogurt."},
+  {title:"What is BMI?",icon:"📊",content:"BMI measures if your weight is healthy for your height. Under 18.5=Underweight, 18.5-24.9=Healthy, 25-29.9=Overweight, 30+=Obese."},
+  {title:"Should I do cardio?",icon:"🏃",content:"Yes! For fat loss: 3-4 sessions/week. For muscle: 1-2 light sessions. Walking, cycling and swimming are great low-impact options."},
+  {title:"How much water?",icon:"💧",content:"Aim for 2-3 litres per day. More if you train hard. Signs of dehydration: headache, tiredness, dark urine. Drink a glass first thing every morning!"},
+  {title:"How important is sleep?",icon:"😴",content:"VERY important! Muscles grow while you sleep, not in the gym. Aim for 7-9 hours. Poor sleep = poor results. Sleep is your free performance enhancer!"},
+  {title:"What is PPL?",icon:"🏋️",content:"Push/Pull/Legs is the most popular workout split. Push days: chest, shoulders, triceps. Pull days: back, biceps. Leg days: quads, hamstrings, calves. 6 days on, 1 rest."},
+  {title:"What is progressive overload?",icon:"📈",content:"This means gradually increasing weight, reps or sets over time. Your muscles need to be challenged more each week to keep growing. Even 1 extra rep counts!"},
+];
+
+function extractJSON(text){
+  try{return JSON.parse(text.trim());}catch(e){}
+  const m=text.match(/\{[\s\S]*\}/);
+  if(m){try{return JSON.parse(m[0]);}catch(e){}}
+  throw new Error("Could not parse AI response. Please try again.");
+}
+
+async function callAI(sys,msg,onChunk){
+  const r=await fetch(GROQ_URL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Authorization":`Bearer ${GROQ_KEY}`},
+    body:JSON.stringify({model:"mixtral-8x7b-32768",max_tokens:1400,stream:true,temperature:0.2,
+      messages:[{role:"system",content:sys},{role:"user",content:msg}]})
+  });
+  if(!r.ok){const t=await r.text();throw new Error("API error "+r.status);}
+  const reader=r.body.getReader();const dec=new TextDecoder();let full="";
+  while(true){
+    const{done,value}=await reader.read();if(done)break;
+    for(const line of dec.decode(value).split("\n")){
+      if(line.startsWith("data:")){const d=line.slice(5).trim();if(d==="[DONE]")break;
+        try{const j=JSON.parse(d);const c=j.choices?.[0]?.delta?.content;if(c){full+=c;if(onChunk)onChunk(full);}}catch(e){}
+      }
+    }
+  }
+  return full;
+}
+
+const Spin=()=><div style={{display:"inline-block",width:13,height:13,border:"2px solid #2a2a2a",borderTop:`2px solid ${G}`,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>;
+function GL({children}){return <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><div style={{width:16,height:2,background:G,borderRadius:1,opacity:.7}}/><span style={{fontSize:10,color:"#555",letterSpacing:"1.5px"}}>{children}</span></div>;}
+function GC({children,style={},hi=false}){return <div style={{background:"#0d0d0d",border:`1px solid ${hi?G+"33":"#1a1a1a"}`,borderRadius:14,padding:"16px 18px",...style}}>{children}</div>;}
+function Tag({label,active,color,onClick}){const c=color||G;return <button onClick={onClick} style={{padding:"8px 14px",borderRadius:20,border:`1px solid ${active?c+"55":"#1e1e1e"}`,background:active?c+"15":"#0a0a0a",color:active?c:"#444",fontSize:13,transition:"all .2s",whiteSpace:"nowrap"}}>{label}</button>;}
+
+/* ─── CUSTOM HABIT TRACKER ─── */
+function HabitTracker(){
+  const todayKey="bym_done2_"+new Date().toDateString();
+  const habitsKey="bym_habits2";
+  const streakKey="bym_streak2";
+
+  const [habits,setHabits]=useState(()=>{
+    try{return JSON.parse(localStorage.getItem(habitsKey)||"[]");}catch(e){return [];}
+  });
+  const [done,setDone]=useState(()=>{
+    try{return JSON.parse(localStorage.getItem(todayKey)||"[]");}catch(e){return [];}
+  });
+  const [streak]=useState(()=>{try{return parseInt(localStorage.getItem(streakKey)||"0");}catch(e){return 0;}});
+  const [mode,setMode]=useState(habits.length===0?"create":"view");
+  const [newH,setNewH]=useState({emoji:"⭐",label:"",time:"08:00"});
+  const [showEmoji,setShowEmoji]=useState(false);
+  const [editId,setEditId]=useState(null);
+
+  function sh(h){setHabits(h);localStorage.setItem(habitsKey,JSON.stringify(h));}
+
+  function toggleDone(id){
+    const nd=done.includes(id)?done.filter(d=>d!==id):[...done,id];
+    setDone(nd);localStorage.setItem(todayKey,JSON.stringify(nd));
+  }
+
+  function addHabit(){
+    if(!newH.label.trim())return;
+    const h={id:"h"+Date.now(),emoji:newH.emoji,label:newH.label.trim(),time:newH.time};
+    sh([...habits,h]);
+    setNewH({emoji:"⭐",label:"",time:"08:00"});
+    setMode("view");setShowEmoji(false);
+  }
+
+  function deleteHabit(id){sh(habits.filter(h=>h.id!==id));}
+  function updateH(id,k,v){sh(habits.map(h=>h.id===id?{...h,[k]:v}:h));}
+
+  const doneCount=done.filter(id=>habits.find(h=>h.id===id)).length;
+  const pct=habits.length>0?Math.round((doneCount/habits.length)*100):0;
+
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+        <div>
+          <div style={{fontSize:9,color:G,letterSpacing:"2px",marginBottom:4}}>YOUR DAY</div>
+          <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Daily Planner</h1>
+          <div style={{fontSize:12,color:"#444",marginTop:2}}>{new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long"})}</div>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={()=>{setMode(mode==="create"?"view":"create");setShowEmoji(false);}} style={{padding:"9px 14px",borderRadius:10,background:mode==="create"?G+"20":"#111",border:`1px solid ${mode==="create"?G+"44":"#222"}`,color:mode==="create"?G:"#888",fontSize:13,fontWeight:600}}>+ Create</button>
+          <button onClick={()=>setMode(mode==="edit"?"view":"edit")} style={{padding:"9px 14px",borderRadius:10,background:mode==="edit"?G+"20":"#111",border:`1px solid ${mode==="edit"?G+"44":"#222"}`,color:mode==="edit"?G:"#888",fontSize:13}}>✏️ Edit</button>
+        </div>
+      </div>
+
+      {/* CREATE HABIT FORM */}
+      {mode==="create"&&(
+        <GC style={{marginBottom:14,border:`1px solid ${G}44`}}>
+          <GL>CREATE YOUR OWN HABIT</GL>
+          <p style={{fontSize:12,color:"#555",marginBottom:12,lineHeight:1.5}}>Build your perfect day — add any habit you want. Wake up time, prayer, coding, gym, study, sport, music, anything!</p>
+
+          {/* Emoji picker */}
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:11,color:"#444",display:"block",marginBottom:6,letterSpacing:"1px"}}>ICON</label>
+            <button onClick={()=>setShowEmoji(e=>!e)} style={{fontSize:26,padding:"8px 14px",borderRadius:10,background:"#111",border:"1px solid #222",display:"flex",alignItems:"center",gap:10,width:"100%",textAlign:"left"}}>
+              {newH.emoji}<span style={{fontSize:12,color:"#444"}}>Tap to pick an icon</span>
+            </button>
+            {showEmoji&&(
+              <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:8,padding:12,background:"#0a0a0a",borderRadius:12,border:"1px solid #1a1a1a",maxHeight:150,overflowY:"auto"}}>
+                {EMOJIS.map(e=>(
+                  <button key={e} onClick={()=>{setNewH(h=>({...h,emoji:e}));setShowEmoji(false);}}
+                    style={{fontSize:22,background:newH.emoji===e?G+"20":"transparent",border:`1px solid ${newH.emoji===e?G+"44":"transparent"}`,borderRadius:8,padding:"4px 6px",cursor:"pointer"}}>{e}</button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Name */}
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:11,color:"#444",display:"block",marginBottom:6,letterSpacing:"1px"}}>HABIT NAME</label>
+            <input
+              placeholder="e.g. Learn coding, Read Quran, Practice guitar, Cold shower, Journal..."
+              value={newH.label}
+              onChange={e=>setNewH(h=>({...h,label:e.target.value}))}
+              onKeyDown={e=>e.key==="Enter"&&addHabit()}
+            />
+          </div>
+
+          {/* Time */}
+          <div style={{marginBottom:14}}>
+            <label style={{fontSize:11,color:"#444",display:"block",marginBottom:6,letterSpacing:"1px"}}>TIME</label>
+            <input type="time" value={newH.time} onChange={e=>setNewH(h=>({...h,time:e.target.value}))}/>
+          </div>
+
+          <div style={{display:"flex",gap:10}}>
+            <button onClick={addHabit} disabled={!newH.label.trim()}
+              style={{flex:1,padding:"13px",borderRadius:10,background:newH.label.trim()?G:"#1a1a1a",color:newH.label.trim()?"#080808":"#444",fontSize:14,fontWeight:700,transition:"all .2s"}}>
+              ✓ Add to My Day
+            </button>
+            <button onClick={()=>{setMode("view");setShowEmoji(false);}}
+              style={{padding:"13px 16px",borderRadius:10,background:"#111",border:"1px solid #222",color:"#555",fontSize:14}}>
+              Cancel
+            </button>
+          </div>
+
+          {/* Quick suggestions */}
+          <div style={{marginTop:14,borderTop:"1px solid #1a1a1a",paddingTop:12}}>
+            <div style={{fontSize:10,color:"#333",letterSpacing:"1px",marginBottom:8}}>QUICK ADD — TAP TO USE</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              {[["💻","Learn coding","09:00"],["📖","Read Quran","05:30"],["🎓","Study AI/ML","10:00"],["🎵","Practice music","18:00"],["🧘","Yoga / Stretching","07:00"],["🌍","Learn a language","20:00"],["📰","Read news","07:30"],["📝","Journal writing","21:00"],["💰","Track finances","19:00"],["🦷","Skincare routine","22:00"],["✈️","Plan travel","15:00"],["🧪","Science study","11:00"]].map(([em,lb,tm])=>(
+                <button key={lb} onClick={()=>{setNewH({emoji:em,label:lb,time:tm});setShowEmoji(false);}}
+                  style={{padding:"7px 12px",borderRadius:20,background:"#0a0a0a",border:"1px solid #1a1a1a",color:"#555",fontSize:12,display:"flex",alignItems:"center",gap:6}}>
+                  <span>{em}</span>{lb}
+                </button>
+              ))}
+            </div>
+          </div>
+        </GC>
+      )}
+
+      {/* EMPTY STATE */}
+      {habits.length===0&&mode!=="create"&&(
+        <GC style={{textAlign:"center",padding:"36px 20px",marginBottom:14}}>
+          <div style={{fontSize:40,marginBottom:12}}>📅</div>
+          <div style={{fontSize:16,color:"#d0c8bc",fontFamily:"Georgia,serif",fontWeight:700,marginBottom:8}}>Build Your Perfect Day</div>
+          <div style={{fontSize:13,color:"#444",lineHeight:1.6,marginBottom:16}}>You have no habits yet. Create your own custom daily routine — wake up time, prayer, gym, coding, study, sport, anything you want!</div>
+          <button onClick={()=>setMode("create")} style={{padding:"12px 24px",borderRadius:10,background:G,color:"#080808",fontSize:14,fontWeight:700}}>+ Create My First Habit</button>
+        </GC>
+      )}
+
+      {/* PROGRESS RING */}
+      {habits.length>0&&(
+        <GC style={{marginBottom:12}}>
+          <div style={{display:"flex",alignItems:"center",gap:16}}>
+            <svg width="72" height="72" viewBox="0 0 72 72">
+              <circle cx="36" cy="36" r="30" fill="none" stroke="#1a1a1a" strokeWidth="7"/>
+              <circle cx="36" cy="36" r="30" fill="none" stroke={pct>=100?"#6aaa3a":G} strokeWidth="7"
+                strokeDasharray={`${2*Math.PI*30}`}
+                strokeDashoffset={`${2*Math.PI*30*(1-pct/100)}`}
+                strokeLinecap="round" transform="rotate(-90 36 36)" style={{transition:"stroke-dashoffset .5s"}}/>
+              <text x="36" y="40" textAnchor="middle" fontSize="15" fontWeight="900" fill={pct>=100?"#6aaa3a":G} fontFamily="Georgia,serif">{pct}%</text>
+            </svg>
+            <div style={{flex:1}}>
+              <div style={{fontSize:16,color:"#e0d8cc",fontWeight:700}}>{doneCount} of {habits.length} done</div>
+              <div style={{fontSize:12,color:"#555",marginTop:4,lineHeight:1.5}}>
+                {pct===100?"🎉 Perfect day! You are crushing it!":pct>=50?"💪 Great progress! Keep going!":"🌅 Let's go! One tick at a time!"}
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8}}>
+                <span style={{fontSize:16}}>🔥</span>
+                <span style={{fontSize:13,color:G,fontWeight:700}}>{streak} day streak</span>
+              </div>
+            </div>
+          </div>
+        </GC>
+      )}
+
+      {/* HABIT LIST */}
+      {habits.length>0&&(
+        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
+          {habits.map(h=>(
+            <div key={h.id} style={{background:"#0d0d0d",border:`1px solid ${done.includes(h.id)?"#6aaa3a33":"#1a1a1a"}`,borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",gap:12,transition:"all .2s"}}>
+              {/* Tick */}
+              <button onClick={()=>toggleDone(h.id)}
+                style={{width:30,height:30,borderRadius:"50%",background:done.includes(h.id)?"#6aaa3a":"#111",border:`2px solid ${done.includes(h.id)?"#6aaa3a":"#333"}`,
+                  display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontSize:14,flexShrink:0,transition:"all .2s"}}>
+                {done.includes(h.id)&&"✓"}
+              </button>
+              {/* Icon */}
+              <span style={{fontSize:22,flexShrink:0}}>{h.emoji}</span>
+              {/* Label */}
+              <div style={{flex:1}}>
+                {mode==="edit"?(
+                  <input value={h.label} onChange={e=>updateH(h.id,"label",e.target.value)}
+                    style={{fontSize:14,padding:"4px 8px",marginBottom:4,borderRadius:6}}/>
+                ):(
+                  <div style={{fontSize:14,fontWeight:600,color:done.includes(h.id)?"#6aaa3a":"#d0c8bc",textDecoration:done.includes(h.id)?"line-through":"none",transition:"all .2s"}}>{h.label}</div>
+                )}
+                <div style={{display:"flex",alignItems:"center",gap:6,marginTop:2}}>
+                  <input type="time" value={h.time} onChange={e=>updateH(h.id,"time",e.target.value)}
+                    style={{fontSize:11,padding:"1px 6px",borderRadius:6,background:"none",border:"none",color:"#444",width:"auto"}}/>
+                </div>
+              </div>
+              {/* Delete in edit mode */}
+              {mode==="edit"&&(
+                <button onClick={()=>deleteHabit(h.id)}
+                  style={{padding:"6px 10px",borderRadius:8,background:"#2a0808",color:"#E24B4A",border:"1px solid #3a0808",fontSize:13}}>🗑</button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* SLEEP GOAL */}
+      <GC>
+        <GL>😴 SLEEP GOAL</GL>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:10}}>
+          <div><label style={{fontSize:10,color:"#444",display:"block",marginBottom:5}}>BEDTIME</label><input type="time" defaultValue="22:00"/></div>
+          <div><label style={{fontSize:10,color:"#444",display:"block",marginBottom:5}}>WAKE TIME</label><input type="time" defaultValue="05:00"/></div>
+        </div>
+        <div style={{padding:"10px 12px",background:"#080808",borderRadius:10,fontSize:12,color:"#555",lineHeight:1.5}}>
+          💡 Aim for <span style={{color:G,fontWeight:700}}>7-9 hours</span> of sleep. Your muscles actually grow while you sleep!
+        </div>
+      </GC>
+    </div>
+  );
+}
+
+function WaterTracker(){
+  const key="bym_water_"+new Date().toDateString();
+  const [cups,setCups]=useState(()=>{try{return parseInt(localStorage.getItem(key)||"0");}catch(e){return 0;}});
+  const goal=8;
+  function add(i){const n=i+1===cups?i:i+1;setCups(n);localStorage.setItem(key,String(n));}
+  return(
+    <GC style={{marginBottom:14}}>
+      <GL>DAILY WATER INTAKE</GL>
+      <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:10}}>
+        <div style={{flex:1}}>
+          <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap"}}>
+            {Array.from({length:goal},(_,i)=><button key={i} onClick={()=>add(i)} style={{fontSize:26,background:"none",border:"none",opacity:i<cups?1:.2,transition:"all .25s",cursor:"pointer"}}>{i<cups?"💧":"🩵"}</button>)}
+          </div>
+          <div style={{height:6,background:"#1a1a1a",borderRadius:3,overflow:"hidden"}}>
+            <div style={{height:"100%",width:`${Math.round((cups/goal)*100)}%`,background:cups>=goal?"#6aaa3a":G,borderRadius:3,transition:"width .4s"}}/>
+          </div>
+        </div>
+        <div style={{textAlign:"center",minWidth:56}}>
+          <div style={{fontSize:28,fontWeight:900,color:cups>=goal?"#6aaa3a":G,fontFamily:"Georgia,serif"}}>{cups}</div>
+          <div style={{fontSize:10,color:"#444"}}>of {goal}</div>
+          {cups>=goal&&<div style={{fontSize:10,color:"#6aaa3a"}}>🎉 Done!</div>}
+        </div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between"}}>
+        <span style={{fontSize:12,color:"#444"}}>{cups===0?"Tap a drop to log water":cups<goal?"Keep drinking!":"Goal achieved!"}</span>
+        <button onClick={()=>{setCups(0);localStorage.setItem(key,"0");}} style={{fontSize:11,color:"#333",background:"none",border:"none",textDecoration:"underline"}}>reset</button>
+      </div>
+    </GC>
+  );
+}
+
+function BMIChart({updates,currentBMI}){
+  const profile=JSON.parse(localStorage.getItem("bym_profile")||"{}");
+  const hM=profile.height?(+profile.height/100):null;
+  let pts=updates.filter(u=>u.weight&&hM).map(u=>({date:u.date,bmi:+(+u.weight/(hM*hM)).toFixed(1)}));
+  if(pts.length===0&&currentBMI)pts=[{date:"Now",bmi:currentBMI}];
+  if(!pts.length)return null;
+  const vals=pts.map(p=>p.bmi),minV=Math.min(...vals,16),maxV=Math.max(...vals,33),range=maxV-minV||1;
+  const W=520,H=100,PL=32,PR=12,PT=18,PB=20;
+  const cx=i=>PL+(i/Math.max(pts.length-1,1))*(W-PL-PR);
+  const cy=v=>PT+(1-(v-minV)/range)*(H-PT-PB);
+  const bc=b=>b<18.5?"#378ADD":b<25?"#6aaa3a":b<30?G:"#E24B4A";
+  return(
+    <GC style={{marginBottom:14}}>
+      <GL>BMI PROGRESS CHART</GL>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:H}}>
+        {[18.5,25,30].map(v=><g key={v}><line x1={PL} y1={cy(v)} x2={W-PR} y2={cy(v)} stroke="#1e1e1e" strokeWidth="1" strokeDasharray="4,4"/><text x={PL-4} y={cy(v)} textAnchor="end" dominantBaseline="middle" fontSize="9" fill="#444">{v}</text></g>)}
+        {pts.length>1&&<polyline fill="none" stroke={G} strokeWidth="2" strokeLinejoin="round" points={pts.map((p,i)=>`${cx(i)},${cy(p.bmi)}`).join(" ")}/>}
+        {pts.map((p,i)=><g key={i}><circle cx={cx(i)} cy={cy(p.bmi)} r={5} fill={bc(p.bmi)} stroke="#080808" strokeWidth="2"/><text x={cx(i)} y={cy(p.bmi)-10} textAnchor="middle" fontSize="9" fill={bc(p.bmi)} fontWeight="700">{p.bmi}</text><text x={cx(i)} y={H-3} textAnchor="middle" fontSize="8" fill="#333">{(p.date||"").split(" ").slice(0,2).join(" ")}</text></g>)}
+      </svg>
+      <div style={{display:"flex",gap:12,marginTop:6,flexWrap:"wrap"}}>
+        {[["#378ADD","Underweight"],["#6aaa3a","Healthy"],["#C9A84C","Overweight"],["#E24B4A","Obese"]].map(([c,l])=><div key={l} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:8,height:8,borderRadius:"50%",background:c}}/><span style={{fontSize:10,color:"#444"}}>{l}</span></div>)}
+      </div>
+    </GC>
+  );
+}
+
+function QuoteBanner({quote,onNext}){
+  const [vis,setVis]=useState(true);
+  return(
+    <div style={{position:"relative",background:"linear-gradient(135deg,#0d0a00,#100c00)",border:`1px solid ${G}22`,borderRadius:16,padding:"20px 22px",marginBottom:14,overflow:"hidden"}}>
+      <svg style={{position:"absolute",right:0,top:0,opacity:.06,pointerEvents:"none"}} width="140" height="120" viewBox="0 0 200 160">
+        <circle cx="160" cy="40" r="90" fill="none" stroke={G} strokeWidth="1"/>
+        <circle cx="160" cy="40" r="50" fill={G} opacity=".2"/>
+      </svg>
+      <div style={{position:"relative",zIndex:1}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+          <div style={{width:16,height:2,background:G,borderRadius:1}}/>
+          <span style={{fontSize:9,color:G,letterSpacing:"2px"}}>DAILY MOTIVATION</span>
+        </div>
+        <div style={{opacity:vis?1:0,transition:"opacity .25s"}}>
+          <div style={{fontSize:15,fontWeight:700,color:"#f0e8d8",lineHeight:1.6,fontFamily:"Georgia,serif",marginBottom:8}}>"{quote.q}"</div>
+          <div style={{fontSize:11,color:G}}>— {quote.a}</div>
+        </div>
+        <button onClick={()=>{setVis(false);setTimeout(()=>{onNext();setVis(true);},250);}}
+          style={{marginTop:12,padding:"6px 16px",borderRadius:14,background:"transparent",border:`1px solid ${G}33`,color:G,fontSize:11}}>Next ›</button>
+      </div>
+    </div>
+  );
+}
+
+function DayCard({day,tag}){
+  const [open,setOpen]=useState(false);
+  const rest=!day.exercises||day.exercises.length===0;
+  return(
+    <div style={{border:`1px solid ${open?G+"25":"#161616"}`,borderRadius:14,overflow:"hidden",marginBottom:8}}>
+      <div onClick={()=>setOpen(o=>!o)} style={{padding:"14px 18px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",background:"#0d0d0d"}}>
+        {tag&&<span style={{fontSize:9,color:G,background:G+"15",padding:"3px 8px",borderRadius:8,whiteSpace:"nowrap",letterSpacing:"0.5px"}}>{tag}</span>}
+        <div style={{fontSize:11,fontWeight:700,color:"#444",width:56}}>{(day.day||"").slice(0,3).toUpperCase()}</div>
+        <div style={{flex:1}}>
+          <span style={{fontSize:13,color:"#d8cfc0",fontFamily:"Georgia,serif"}}>{day.focus}</span>
+          {rest?<span style={{marginLeft:8,fontSize:10,color:G,background:G+"15",padding:"2px 8px",borderRadius:8}}>REST</span>
+          :<span style={{marginLeft:8,fontSize:11,color:"#444"}}>{day.exercises.length} ex</span>}
+        </div>
+        <span style={{color:"#333",transform:open?"rotate(180deg)":"none",transition:"transform .25s"}}>▾</span>
+      </div>
+      {open&&(
+        <div style={{background:"#090909",padding:"14px 18px",borderTop:"1px solid #141414"}}>
+          {day.safetyNote&&<div style={{background:"#1a0f00",border:`1px solid ${G}33`,borderRadius:10,padding:"8px 12px",marginBottom:10,fontSize:13,color:"#BA7517"}}>⚠ {day.safetyNote}</div>}
+          {!rest&&day.exercises?.length>0&&(
+            <div style={{marginBottom:12}}>
+              <div style={{fontSize:9,color:"#444",letterSpacing:"1.5px",marginBottom:8}}>EXERCISES</div>
+              {day.exercises.map((ex,i)=>(
+                <div key={i} style={{background:"#0f0f0f",border:"1px solid #161616",borderRadius:10,padding:"9px 12px",marginBottom:6}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:ex.tip?"4px":"0"}}>
+                    <div style={{width:20,height:20,borderRadius:"50%",background:G+"20",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:G,fontWeight:800,flexShrink:0}}>{i+1}</div>
+                    <div style={{flex:1,fontSize:13,color:"#ccc",fontWeight:600}}>{ex.name}</div>
+                    <div style={{fontSize:12,color:"#555"}}>{ex.sets}×{ex.reps}</div>
+                    <div style={{fontSize:11,color:"#2a2a2a",marginLeft:6}}>{ex.rest}</div>
+                  </div>
+                  {ex.tip&&<div style={{fontSize:11,color:"#666",lineHeight:1.5,marginLeft:30,marginTop:3}}>💡 {ex.tip}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+          {day.diet&&(
+            <div>
+              <div style={{fontSize:9,color:"#444",letterSpacing:"1.5px",marginBottom:8}}>MEALS</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:6}}>
+                {[["🌅","Breakfast",day.diet.breakfast],["☀️","Lunch",day.diet.lunch],["🌙","Dinner",day.diet.dinner],["🍎","Snacks",day.diet.snacks]].map(([ic,lb,v])=>(
+                  <div key={lb} style={{padding:"9px 11px",background:"#0c0c0c",borderRadius:10,border:"1px solid #161616"}}>
+                    <div style={{fontSize:9,color:"#444",marginBottom:3,letterSpacing:"1px"}}>{ic} {lb.toUpperCase()}</div>
+                    <div style={{fontSize:12,color:"#aaa",lineHeight:1.5}}>{v}</div>
+                  </div>
+                ))}
+              </div>
+              {day.diet.swap&&<div style={{padding:"7px 10px",background:"#0a1a0a",border:"1px solid #1a3a1a",borderRadius:8,fontSize:12,color:"#5aaa5a"}}>🔄 Swap: {day.diet.swap}</div>}
+              {day.diet.ifWindow&&<div style={{padding:"7px 10px",background:G+"10",borderRadius:8,fontSize:12,color:G,marginTop:6}}>⏱ Eating Window: {day.diet.ifWindow}</div>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BeginnerGuide(){
+  const [open,setOpen]=useState(null);
+  const [read,setRead]=useState(()=>{try{return JSON.parse(localStorage.getItem("bym_guide_read")||"[]");}catch(e){return [];}});
+  function markRead(i){const nr=[...new Set([...read,i])];setRead(nr);localStorage.setItem("bym_guide_read",JSON.stringify(nr));}
+  return(
+    <div>
+      <div style={{marginBottom:16}}>
+        <div style={{fontSize:9,color:G,letterSpacing:"2px",marginBottom:6}}>FOR BEGINNERS</div>
+        <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Fitness 101</h1>
+        <p style={{color:"#444",fontSize:13,marginTop:4}}>Everything you need to know if you are just starting out</p>
+        <div style={{fontSize:12,color:G,marginTop:6}}>{read.length}/{BEGINNER_GUIDE.length} guides read</div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+        {BEGINNER_GUIDE.map((g,i)=>(
+          <div key={i} onClick={()=>{setOpen(open===i?null:i);markRead(i);}}
+            style={{background:"#0d0d0d",border:`1px solid ${read.includes(i)?G+"44":"#1a1a1a"}`,borderRadius:12,padding:"13px",cursor:"pointer"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+              <span style={{fontSize:20}}>{g.icon}</span>
+              {read.includes(i)&&<span style={{fontSize:10,color:G}}>✓ Read</span>}
+            </div>
+            <div style={{fontSize:13,fontWeight:700,color:"#d0c8bc",marginBottom:3}}>{g.title}</div>
+            {open===i&&<div style={{fontSize:12,color:"#777",lineHeight:1.6,marginTop:8,borderTop:"1px solid #1a1a1a",paddingTop:8}}>{g.content}</div>}
+          </div>
+        ))}
+      </div>
+      <GC hi>
+        <div style={{fontSize:10,color:G,letterSpacing:"1.5px",marginBottom:12}}>🏆 12-WEEK BEGINNER ROADMAP</div>
+        {[["Week 1-2","Learn the basics. 3x full body. Focus on form not weight.","#6aaa3a"],
+          ["Week 3-4","Add weight slowly. Track food. Hit protein goal daily.","#6aaa3a"],
+          ["Week 5-8","Increase intensity. Try new exercises. Build consistency.","#C9A84C"],
+          ["Week 9-12","Not a beginner anymore! Move to intermediate program.","#C9A84C"]].map(([wk,desc,col])=>(
+          <div key={wk} style={{display:"flex",gap:12,marginBottom:10}}>
+            <div style={{width:80,fontSize:11,fontWeight:700,color:col,flexShrink:0}}>{wk}</div>
+            <div style={{fontSize:12,color:"#666",lineHeight:1.5}}>{desc}</div>
+          </div>
+        ))}
+      </GC>
+    </div>
+  );
+}
+
+/* ─── MAIN APP ─── */
+function App(){
+  const today=new Date();
+  const doy=Math.floor((today-new Date(today.getFullYear(),0,0))/86400000);
+  const [tab,setTab]=useState("home");
+  const [sub,setSub]=useState("habits");
+  const [qIdx,setQIdx]=useState(doy%QUOTES.length);
+  const [P,setP]=useState({name:"",age:"",gender:"Male",height:"",weight:"",activity:"Moderate",goal:"Build Muscle",currentType:"Meso",targetType:"Meso",dietPref:"Standard Balanced",condition:"None",restriction:"None",workoutType:"ppl"});
+  const [plan,setPlan]=useState(null);
+  const [weekB,setWeekB]=useState(null);
+  const [loading,setLoading]=useState(false);
+  const [loadMsg,setLoadMsg]=useState("");
+  const [planTab,setPlanTab]=useState("a");
+  const [msgs,setMsgs]=useState([{role:"ai",text:"Hey! I am your AI fitness coach by Mel Miracle 💪\n\nAsk me anything about workouts, diet, nutrition, sleep, or your health and fitness journey!"}]);
+  const [chatIn,setChatIn]=useState("");
+  const [chatLoad,setChatLoad]=useState(false);
+  const [updates,setUpdates]=useState([]);
+  const [upForm,setUpForm]=useState({weight:"",waist:"",energy:"Medium",days:""});
+  const chatRef=useRef(null);
+  const up=(k,v)=>setP(p=>({...p,[k]:v}));
+
+  useEffect(()=>{
+    try{
+      const d=localStorage.getItem("bym_profile");const pl=localStorage.getItem("bym_plan");
+      const u=localStorage.getItem("bym_updates");const wb=localStorage.getItem("bym_week_b");
+      if(d)setP(JSON.parse(d));if(pl)setPlan(JSON.parse(pl));
+      if(u)setUpdates(JSON.parse(u));if(wb)setWeekB(JSON.parse(wb));
+    }catch(e){}
+  },[]);
+  useEffect(()=>{chatRef.current?.scrollIntoView({behavior:"smooth"})},[msgs]);
+
+  const bmi=P.height&&P.weight?+(+P.weight/((+P.height/100)**2)).toFixed(1):null;
+  const btMap={Ecto:"Ectomorph",Meso:"Mesomorph",Endo:"Endomorph"};
+  const btInfo={
+    Ecto:{label:"Ectomorph",desc:"Lean & Long",example:"Slim frame, hard to gain weight, fast metabolism. Think tall runners.",tip:"Eat more calories! Heavy compound lifts. High-protein dense foods.",icon:"🦴"},
+    Meso:{label:"Mesomorph",desc:"Athletic & Defined",example:"Naturally athletic. Gain muscle and lose fat relatively easily. Think gymnasts.",tip:"Balanced weights and cardio. Moderate calorie intake. Most versatile body type.",icon:"💪"},
+    Endo:{label:"Endomorph",desc:"Broader & Stockier",example:"Broader frame, gains both muscle and fat easily. Slower metabolism.",tip:"Prioritise HIIT and cardio. Control carb portions. Calorie deficit for fat loss.",icon:"🏋️"},
+  };
+
+  function sys(){return`You are an expert AI fitness coach for "Build Your Muscles by Mel Miracle". User: ${P.name||"User"}, ${P.age}yrs, ${P.gender}, ${P.height}cm, ${P.weight}kg, Goal: ${P.goal}, Diet: ${P.dietPref}, Condition: ${P.condition}. ONLY discuss fitness, nutrition, workouts, diet, sleep, body types, health. Be warm, motivating, use simple language. Always consider health conditions for safe advice.`;}
+
+  async function genPlan(){
+    if(!P.height||!P.weight||!P.age){alert("Please fill in age, height and weight.");return;}
+    setLoading(true);setPlan(null);setWeekB(null);
+    const lm=["Analysing your body...","Building your workout plan...","Creating your meal plan...","Almost ready..."];
+    let mi=0;setLoadMsg(lm[0]);
+    const iv=setInterval(()=>{mi=(mi+1)%lm.length;setLoadMsg(lm[mi]);},1800);
+    const wt=WORKOUT_TYPES.find(w=>w.id===P.workoutType)||WORKOUT_TYPES[0];
+
+    const systemPrompt=`You are a fitness plan generator. Always respond with ONLY a valid JSON object. Never add any text before or after the JSON. The JSON must start with { and end with }.`;
+
+    const userPrompt=`Generate a 7-day personalised fitness plan as a JSON object.
+
+Person details: Age ${P.age}, Gender ${P.gender}, Height ${P.height}cm, Weight ${P.weight}kg, Goal: ${P.goal}, Workout split: ${wt.name}, Diet preference: ${P.dietPref}, Health condition: ${P.condition}, Dietary restriction: ${P.restriction}.
+
+Safety rules to follow strictly:
+- If pregnant: no crunches, no heavy lifting, no high impact
+- If PCOS: use low glycaemic index foods only
+- If knee injury: no squats or lunges
+- If back injury: no deadlifts
+- If shoulder injury: no overhead pressing
+- Respect all dietary restrictions in every meal
+
+The JSON must have this exact structure:
+{
+  "summary": "2 sentences personalised to this person",
+  "conditionNote": "note about their health condition or empty string",
+  "calories": 2000,
+  "protein": 140,
+  "carbs": 200,
+  "fat": 65,
+  "dietTypeNote": "one sentence about why this diet suits them",
+  "weekPlan": [
+    {
+      "day": "Monday",
+      "focus": "name of the workout focus",
+      "safetyNote": "any safety warning or empty string",
+      "exercises": [
+        { "name": "exercise name", "sets": 3, "reps": "10-12", "rest": "60s", "tip": "form tip" }
+      ],
+      "diet": {
+        "breakfast": "meal with portions",
+        "lunch": "meal with portions",
+        "dinner": "meal with portions",
+        "snacks": "snack with portions",
+        "swap": "alternative food option",
+        "ifWindow": "eating window if intermittent fasting else empty"
+      }
+    }
+  ]
+}
+
+Include all 7 days. Make meals appropriate for the diet preference and health condition. Make exercises appropriate for the workout split chosen.`;
+
+    try{
+      const response = await fetch(GROQ_URL, {
+        method: "POST",
+        headers: {"Content-Type":"application/json","Authorization":`Bearer ${GROQ_KEY}`},
+        body: JSON.stringify({
+          model: "mixtral-8x7b-32768",
+          max_tokens: 2500,
+          temperature: 0.1,
+          stream: false,
+          messages: [
+            {role:"system", content: systemPrompt},
+            {role:"user", content: userPrompt}
+          ]
+        })
+      });
+
+      if(!response.ok){
+        const errText = await response.text();
+        throw new Error("API error " + response.status + ": " + errText.slice(0,100));
+      }
+
+      const data = await response.json();
+      const text = data.choices[0].message.content;
+
+      // Extract JSON from response
+      let parsed;
+      try{
+        parsed = JSON.parse(text.trim());
+      }catch(e){
+        const match = text.match(/\{[\s\S]*\}/);
+        if(match){
+          parsed = JSON.parse(match[0]);
+        }else{
+          throw new Error("Could not find JSON in response");
+        }
+      }
+
+      setPlan(parsed);
+      localStorage.setItem("bym_plan",JSON.stringify(parsed));
+      localStorage.setItem("bym_profile",JSON.stringify(P));
+      setPlanTab("a");
+      setTab("plan");
+
+      // Generate Week B in background
+      setTimeout(async()=>{
+        try{
+          const p2 = userPrompt.replace("Generate a 7-day personalised fitness plan","Generate a DIFFERENT 7-day fitness plan for WEEK B. Use different exercises from Week A but keep the same workout split");
+          const r2 = await fetch(GROQ_URL,{
+            method:"POST",
+            headers:{"Content-Type":"application/json","Authorization":`Bearer ${GROQ_KEY}`},
+            body:JSON.stringify({model:"mixtral-8x7b-32768",max_tokens:2500,temperature:0.1,stream:false,
+              messages:[{role:"system",content:systemPrompt},{role:"user",content:p2}]})
+          });
+          if(r2.ok){
+            const d2=await r2.json();
+            const t2=d2.choices[0].message.content;
+            let p2parsed;
+            try{p2parsed=JSON.parse(t2.trim());}catch(e){const m=t2.match(/\{[\s\S]*\}/);if(m)p2parsed=JSON.parse(m[0]);}
+            if(p2parsed){setWeekB(p2parsed);localStorage.setItem("bym_week_b",JSON.stringify(p2parsed));}
+          }
+        }catch(e){console.log("Week B skipped");}
+      },1000);
+
+    }catch(err){
+      console.error("Plan error:", err);
+      alert("Error: "+err.message);
+    }
+    clearInterval(iv);
+    setLoading(false);
+  }
+  async function sendChat(){
+    if(!chatIn.trim()||chatLoad)return;
+    const q=chatIn.trim();setChatIn("");
+    setMsgs(m=>[...m,{role:"user",text:q},{role:"ai",text:""}]);
+    setChatLoad(true);
+    try{await callAI(sys(),q,(t)=>setMsgs(m=>[...m.slice(0,-1),{role:"ai",text:t}]));}
+    catch(e){setMsgs(m=>[...m.slice(0,-1),{role:"ai",text:"Connection error. Please try again!"}]);}
+    setChatLoad(false);
+  }
+
+  function saveUpdate(){
+    if(!upForm.weight)return;
+    const e={...upForm,date:new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"}),ts:Date.now()};
+    const nu=[...updates,e];setUpdates(nu);localStorage.setItem("bym_updates",JSON.stringify(nu));
+    setUpForm({weight:"",waist:"",energy:"Medium",days:""});
+  }
+
+  const TABS=[["home","🏠","Home"],["profile","👤","Profile"],["plan","📋","Plan"],["daily","📅","Daily"],["more","⚡","More"]];
+
+  return(
+    <div style={{minHeight:"100vh",background:"#080808"}}>
+      {/* TOP NAV */}
+      <div style={{background:"#050505",borderBottom:"1px solid #111",padding:"0 20px",display:"flex",alignItems:"center",justifyContent:"space-between",height:56,position:"sticky",top:0,zIndex:100}}>
+        <div>
+          <span style={{fontSize:16,fontWeight:800,color:G,fontFamily:"Georgia,serif"}}>Build Your Muscles</span>
+          <span style={{fontSize:9,color:"#2a2a2a",marginLeft:8,letterSpacing:"1.5px"}}>BY MEL MIRACLE</span>
+        </div>
+        <div className="desktop-nav" style={{display:"flex",gap:2}}>
+          {TABS.map(([id,ic,lb])=>(
+            <button key={id} onClick={()=>setTab(id)} style={{padding:"6px 12px",borderRadius:8,background:tab===id?G:"transparent",color:tab===id?"#080808":"#444",fontSize:12,fontWeight:tab===id?700:400,display:"flex",alignItems:"center",gap:5,transition:"all .2s"}}>
+              <span>{ic}</span>{lb}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="mobile-bottom">
+        {TABS.map(([id,ic,lb])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"none",padding:"6px 2px",color:tab===id?G:"#444"}}>
+            <span style={{fontSize:20}}>{ic}</span>
+            <span style={{fontSize:10,fontWeight:tab===id?700:400}}>{lb}</span>
+          </button>
+        ))}
+      </nav>
+
+      <div className="page-wrap" style={{maxWidth:860,margin:"0 auto",padding:"16px 16px 24px"}}>
+
+      {/* HOME */}
+      {tab==="home"&&(
+        <div className="fade-up">
+          <QuoteBanner quote={QUOTES[qIdx]} onNext={()=>setQIdx(i=>(i+1)%QUOTES.length)}/>
+          <div style={{position:"relative",background:"linear-gradient(135deg,#0d0a00,#0a0800)",border:`1px solid ${G}20`,borderRadius:16,padding:"20px 22px",marginBottom:14,overflow:"hidden"}}>
+            <div style={{position:"absolute",right:16,top:"50%",transform:"translateY(-50%)",fontSize:60,opacity:.04}}>💪</div>
+            <div style={{position:"relative",zIndex:1}}>
+              <div style={{fontSize:9,color:G,letterSpacing:"2px",marginBottom:6}}>WELCOME TO</div>
+              <div style={{fontSize:22,fontWeight:900,color:"#f0e8d8",fontFamily:"Georgia,serif",marginBottom:6}}>Build Your Muscles</div>
+              <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:14}}>Your AI-powered life transformation platform — fitness, mindset, daily planning and more. All in one place.</div>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                <button onClick={()=>setTab(plan?"plan":"profile")} style={{padding:"11px 20px",borderRadius:10,background:G,color:"#080808",fontSize:14,fontWeight:700}}>{plan?"View My Plan →":"Start Journey →"}</button>
+                <button onClick={()=>setTab("daily")} style={{padding:"11px 16px",borderRadius:10,background:"transparent",border:`1px solid ${G}33`,color:G,fontSize:14}}>Daily Planner</button>
+              </div>
+            </div>
+          </div>
+          <WaterTracker/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+            {[["🏋️","6 Workout Splits","PPL, Full Body, Bro Split, HIIT & more"],["🍽️","Detailed Diet Plans","Exact portions, food swaps & grocery list"],["📅","Custom Daily Planner","Create YOUR own habits — coding, prayer, anything!"],["😴","Sleep Tracker","Set your bedtime and wake-up goal"],["📚","Fitness 101","Complete beginner guide + 12-week roadmap"],["🤖","AI Coach","Ask anything about fitness & health"]].map(([ic,t,d])=>(
+              <GC key={t} style={{padding:"12px"}}>
+                <div style={{fontSize:20,marginBottom:5}}>{ic}</div>
+                <div style={{fontSize:12,fontWeight:700,color:"#d0c8bc",marginBottom:3,fontFamily:"Georgia,serif"}}>{t}</div>
+                <div style={{fontSize:11,color:"#333",lineHeight:1.5}}>{d}</div>
+              </GC>
+            ))}
+          </div>
+          <div style={{borderTop:"1px solid #111",paddingTop:12,display:"flex",gap:10,alignItems:"flex-start"}}>
+            <div style={{fontSize:12,color:"#444",fontFamily:"Georgia,serif",fontStyle:"italic",lineHeight:1.6}}>"{QUOTES[(qIdx+5)%QUOTES.length].q}" <span style={{fontSize:11,color:"#333"}}>— {QUOTES[(qIdx+5)%QUOTES.length].a}</span></div>
+          </div>
+        </div>
+      )}
+
+      {/* PROFILE */}
+      {tab==="profile"&&(
+        <div className="fade-up">
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:9,color:G,letterSpacing:"2px",marginBottom:6}}>YOUR INFORMATION</div>
+            <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Profile Setup</h1>
+            <p style={{color:"#444",fontSize:13,marginTop:4}}>The more you share, the smarter your plan becomes</p>
+          </div>
+
+          <GC style={{marginBottom:12}}>
+            <GL>BASIC INFORMATION</GL>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>FULL NAME</label><input placeholder="Your name" value={P.name} onChange={e=>up("name",e.target.value)}/></div>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>AGE</label><input type="number" placeholder="e.g. 22" value={P.age} onChange={e=>up("age",e.target.value)}/></div>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>GENDER</label><select value={P.gender} onChange={e=>up("gender",e.target.value)}><option>Male</option><option>Female</option><option>Other</option></select></div>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>ACTIVITY</label><select value={P.activity} onChange={e=>up("activity",e.target.value)}><option value="Sedentary">Sedentary</option><option value="Light">Light</option><option value="Moderate">Moderate</option><option value="Active">Active</option><option value="Very Active">Very Active</option></select></div>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>HEIGHT (cm)</label><input type="number" placeholder="e.g. 175" value={P.height} onChange={e=>up("height",e.target.value)}/></div>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>WEIGHT (kg)</label><input type="number" placeholder="e.g. 75" value={P.weight} onChange={e=>up("weight",e.target.value)}/></div>
+            </div>
+            {bmi&&<div style={{display:"flex",alignItems:"center",gap:14,padding:"11px",background:"#080808",borderRadius:10,border:"1px solid #1a1a1a"}}>
+              <div style={{fontSize:30,fontWeight:900,fontFamily:"Georgia,serif",color:bmi<18.5?"#378ADD":bmi<25?G:bmi<30?"#E8A030":"#E24B4A"}}>{bmi}</div>
+              <div><div style={{fontSize:13,color:"#ccc",fontWeight:600}}>{bmi<18.5?"Underweight":bmi<25?"Healthy Weight":bmi<30?"Overweight":"Obese"}</div><div style={{fontSize:11,color:"#444"}}>Your BMI</div></div>
+            </div>}
+          </GC>
+
+          <GC style={{marginBottom:12}}>
+            <GL>WORKOUT SPLIT — CHOOSE YOUR STYLE</GL>
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
+              {WORKOUT_TYPES.map(w=>(
+                <div key={w.id} onClick={()=>up("workoutType",w.id)} style={{padding:"13px 14px",borderRadius:12,border:`1px solid ${P.workoutType===w.id?G+"55":"#1a1a1a"}`,background:P.workoutType===w.id?"#0d0900":"#0a0a0a",cursor:"pointer",transition:"all .2s"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+                    <div style={{fontSize:14,fontWeight:700,color:P.workoutType===w.id?G:"#aaa",flex:1}}>{w.name}</div>
+                    {P.workoutType===w.id&&<span style={{fontSize:10,color:G}}>✓ Selected</span>}
+                  </div>
+                  <div style={{fontSize:12,color:"#444",lineHeight:1.4}}>{w.desc}</div>
+                </div>
+              ))}
+            </div>
+            <GL>YOUR PRIMARY GOAL</GL>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{GOALS.map(g=><Tag key={g} label={g} active={P.goal===g} onClick={()=>up("goal",g)}/>)}</div>
+          </GC>
+
+          <GC style={{marginBottom:12}}>
+            <GL>BODY TYPE — TAP CURRENT THEN TARGET</GL>
+            <div style={{fontSize:11,color:"#444",marginBottom:10}}>Not sure? Each type has an example below to help you identify</div>
+            <div style={{display:"flex",gap:10,marginBottom:12}}>
+              {Object.entries(btInfo).map(([key,bt])=>(
+                <div key={key} onClick={()=>{if(P.currentType!==key)up("currentType",key);else up("targetType",key);}}
+                  style={{flex:1,padding:"12px 8px",borderRadius:12,textAlign:"center",cursor:"pointer",border:`1px solid ${P.currentType===key||P.targetType===key?G+"44":"#1a1a1a"}`,background:P.currentType===key||P.targetType===key?"#0d0900":"#0a0a0a",transition:"all .2s"}}>
+                  <div style={{fontSize:22,marginBottom:5}}>{bt.icon}</div>
+                  <div style={{fontSize:12,fontWeight:700,color:P.currentType===key||P.targetType===key?G:"#444"}}>{bt.label}</div>
+                  <div style={{fontSize:10,color:"#2a2a2a",marginTop:2}}>{bt.desc}</div>
+                  {P.currentType===key&&<div style={{fontSize:9,color:G,marginTop:5,letterSpacing:"1px"}}>CURRENT</div>}
+                  {P.targetType===key&&P.currentType!==key&&<div style={{fontSize:9,color:"#917a36",marginTop:5,letterSpacing:"1px"}}>TARGET</div>}
+                </div>
+              ))}
+            </div>
+            {btInfo[P.currentType]&&<div style={{background:"#111",borderRadius:10,padding:"12px 14px"}}>
+              <div style={{fontSize:11,color:G,marginBottom:5}}>💡 What is {btInfo[P.currentType].label}?</div>
+              <div style={{fontSize:12,color:"#777",lineHeight:1.5,marginBottom:5}}>{btInfo[P.currentType].example}</div>
+              <div style={{fontSize:12,color:"#5a8a5a"}}>✓ Your tip: {btInfo[P.currentType].tip}</div>
+            </div>}
+          </GC>
+
+          <GC style={{marginBottom:12}}>
+            <GL>DIET PREFERENCE</GL>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:14}}>{DIETS.map(d=><Tag key={d} label={d} active={P.dietPref===d} onClick={()=>up("dietPref",d)}/>)}</div>
+            <GL>DIETARY RESTRICTIONS</GL>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{["None","Vegetarian","Vegan","Gluten-Free","Dairy-Free","Halal","Kosher","Nut Allergy"].map(r=><Tag key={r} label={r} active={P.restriction===r} color="#6aa6cc" onClick={()=>up("restriction",r)}/>)}</div>
+          </GC>
+
+          <GC style={{marginBottom:20,border:P.condition!=="None"?"1px solid #1a3a5a":"1px solid #1a1a1a"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+              <span>🩺</span><span style={{fontSize:10,color:"#444",letterSpacing:"1.5px"}}>HEALTH CONDITIONS</span>
+              {P.condition!=="None"&&<span style={{fontSize:9,background:"#6aa6cc20",color:"#6aa6cc",padding:"3px 10px",borderRadius:10,marginLeft:"auto"}}>PLAN ADAPTED</span>}
+            </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{CONDITIONS.map(c=><Tag key={c} label={c} active={P.condition===c} color="#6aa6cc" onClick={()=>up("condition",c)}/>)}</div>
+          </GC>
+
+          <button onClick={genPlan} disabled={loading} style={{width:"100%",padding:18,borderRadius:14,background:loading?"#1a1100":G,color:loading?G:"#080808",fontSize:16,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",gap:10,transition:"all .25s"}}>
+            {loading?<><Spin/> {loadMsg}</>:"✦ Generate My Personalised Plan"}
+          </button>
+        </div>
+      )}
+
+      {/* PLAN */}
+      {tab==="plan"&&(
+        <div className="fade-up">
+          {!plan?(
+            <div style={{textAlign:"center",padding:"60px 20px"}}>
+              <div style={{fontSize:48,marginBottom:14}}>📋</div>
+              <div style={{color:"#444",fontFamily:"Georgia,serif",fontSize:16,marginBottom:18}}>No plan yet — fill your profile first!</div>
+              <button onClick={()=>setTab("profile")} style={{padding:"14px 28px",borderRadius:12,background:G,color:"#080808",fontSize:15,fontWeight:700}}>Complete Profile →</button>
+            </div>
+          ):(
+            <>
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:9,color:G,letterSpacing:"2px",marginBottom:6}}>YOUR PERSONALISED PLAN</div>
+                <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>{P.name?"For "+P.name+" 👋":"Your Fitness Plan"}</h1>
+                <p style={{color:"#555",fontSize:13,marginTop:6,lineHeight:1.7}}>{plan.summary}</p>
+              </div>
+
+              {plan.conditionNote&&plan.conditionNote.length>4&&(
+                <div style={{background:"#060d14",border:"1px solid #1a3a5a",borderRadius:12,padding:"12px",marginBottom:14}}>
+                  <div style={{fontSize:9,color:"#6aa6cc",letterSpacing:"1.5px",marginBottom:4}}>🩺 CONDITION NOTE</div>
+                  <div style={{fontSize:12,color:"#5a8aaa",lineHeight:1.7}}>{plan.conditionNote}</div>
+                </div>
+              )}
+
+              <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:14}}>
+                {[["🔥","CALORIES",plan.calories,"kcal/day"],["🥩","PROTEIN",plan.protein+"g","per day"],["🌾","CARBS",plan.carbs+"g","per day"],["🥑","FAT",plan.fat+"g","per day"]].map(([ic,lb,v,sub])=>(
+                  <div key={lb} style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:12,padding:"13px 10px",textAlign:"center"}}>
+                    <div style={{fontSize:18,marginBottom:5}}>{ic}</div>
+                    <div style={{fontSize:9,color:"#444",letterSpacing:"1px",marginBottom:3}}>{lb}</div>
+                    <div style={{fontSize:20,fontWeight:900,color:G,fontFamily:"Georgia,serif"}}>{v}</div>
+                    <div style={{fontSize:11,color:"#333",marginTop:2}}>{sub}</div>
+                  </div>
+                ))}
+              </div>
+
+              {plan.dietTypeNote&&<GC hi style={{marginBottom:14}}><div style={{fontSize:9,color:G,letterSpacing:"1.5px",marginBottom:5}}>🍽 {P.dietPref?.toUpperCase()}</div><div style={{fontSize:13,color:"#777",lineHeight:1.6}}>{plan.dietTypeNote}</div></GC>}
+
+              <div style={{display:"flex",gap:8,marginBottom:12}}>
+                {["a","b"].map(t=>(
+                  <button key={t} onClick={()=>setPlanTab(t)} style={{padding:"8px 18px",borderRadius:10,background:planTab===t?G:"#111",color:planTab===t?"#080808":"#555",fontSize:13,fontWeight:planTab===t?700:400,border:`1px solid ${planTab===t?G:"#222"}`}}>
+                    {t==="a"?"Week A":weekB?"Week B":"Week B..."}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{fontSize:9,color:"#444",letterSpacing:"2px",marginBottom:10}}>7-DAY PLAN — TAP ANY DAY TO EXPAND</div>
+              {(planTab==="a"?plan:weekB||plan).weekPlan?.map((d,i)=><DayCard key={i} day={d} tag={planTab==="b"?"WEEK B":null}/>)}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* DAILY */}
+      {tab==="daily"&&(
+        <div className="fade-up">
+          <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto",paddingBottom:4}}>
+            {[["habits","📅 Habits"],["progress","📈 Progress"],["water","💧 Water"]].map(([t,lb])=>(
+              <button key={t} onClick={()=>setSub(t)} style={{padding:"8px 14px",borderRadius:10,background:sub===t?G:"#111",color:sub===t?"#080808":"#555",fontSize:13,fontWeight:sub===t?700:400,border:`1px solid ${sub===t?G:"#222"}`,whiteSpace:"nowrap",flexShrink:0}}>{lb}</button>
+            ))}
+          </div>
+          {sub==="habits"&&<HabitTracker/>}
+          {sub==="water"&&<WaterTracker/>}
+          {sub==="progress"&&(
+            <div>
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:9,color:G,letterSpacing:"2px",marginBottom:6}}>BODY STATS</div>
+                <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Progress Tracker</h1>
+              </div>
+              <BMIChart updates={updates} currentBMI={bmi}/>
+              <GC style={{marginBottom:14}}>
+                <GL>LOG THIS WEEK</GL>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+                  <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>WEIGHT (kg)*</label><input type="number" placeholder="e.g. 74" value={upForm.weight} onChange={e=>setUpForm(f=>({...f,weight:e.target.value}))}/></div>
+                  <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>WAIST (cm)</label><input type="number" placeholder="optional" value={upForm.waist} onChange={e=>setUpForm(f=>({...f,waist:e.target.value}))}/></div>
+                  <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>ENERGY</label><select value={upForm.energy} onChange={e=>setUpForm(f=>({...f,energy:e.target.value}))}><option>Low</option><option>Medium</option><option>High</option></select></div>
+                  <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>WORKOUT DAYS</label><input type="number" min="0" max="7" placeholder="0-7" value={upForm.days} onChange={e=>setUpForm(f=>({...f,days:e.target.value}))}/></div>
+                </div>
+                <button onClick={saveUpdate} style={{width:"100%",padding:"13px",borderRadius:12,background:G,color:"#080808",fontSize:15,fontWeight:700}}>Save This Week</button>
+              </GC>
+              {updates.length===0?<div style={{textAlign:"center",padding:"40px",color:"#222",fontFamily:"Georgia,serif"}}>Log your first week above.</div>:(
+                <div>
+                  {updates.length>=2&&<div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
+                    {[["Change",+(updates[updates.length-1].weight-updates[0].weight).toFixed(1)+"kg"],["Weeks",updates.length],["Energy",updates[updates.length-1].energy]].map(([l,v])=>(
+                      <div key={l} style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:12,padding:"12px",textAlign:"center"}}>
+                        <div style={{fontSize:9,color:"#444",letterSpacing:"1px",marginBottom:4}}>{l.toUpperCase()}</div>
+                        <div style={{fontSize:20,fontWeight:900,color:G,fontFamily:"Georgia,serif"}}>{v}</div>
+                      </div>
+                    ))}
+                  </div>}
+                  {[...updates].reverse().map((u,i)=>{
+                    const rev=[...updates].reverse();const prev=i<rev.length-1?rev[i+1]:null;
+                    const diff=prev?+(u.weight-prev.weight).toFixed(1):null;
+                    return(
+                      <div key={i} style={{background:"#0d0d0d",border:"1px solid #161616",borderRadius:12,padding:"12px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:14}}>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:11,color:"#2a2a2a",marginBottom:4}}>{u.date}</div>
+                          <div style={{display:"flex",flexWrap:"wrap",gap:10}}>
+                            <span style={{fontSize:20,fontWeight:900,color:G,fontFamily:"Georgia,serif"}}>{u.weight}kg</span>
+                            {u.waist&&<span style={{fontSize:12,color:"#444"}}>Waist {u.waist}cm</span>}
+                            <span style={{fontSize:12,color:"#444"}}>Energy: {u.energy}</span>
+                            {u.days&&<span style={{fontSize:12,color:"#444"}}>{u.days}/7 days</span>}
+                          </div>
+                        </div>
+                        {diff!==null&&<div style={{textAlign:"center",minWidth:50}}>
+                          <div style={{fontSize:15,fontWeight:900,fontFamily:"Georgia,serif",color:diff<0?"#6aaa3a":diff>0?"#E24B4A":"#555"}}>{diff>0?"+":""}{diff}kg</div>
+                          <div style={{fontSize:9,color:"#2a2a2a"}}>VS PREV</div>
+                        </div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MORE */}
+      {tab==="more"&&(
+        <div className="fade-up">
+          <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto",paddingBottom:4}}>
+            {[["guide","📚 Fitness 101"],["chat","🤖 AI Coach"]].map(([t,lb])=>(
+              <button key={t} onClick={()=>setSub(t)} style={{padding:"8px 14px",borderRadius:10,background:sub===t?G:"#111",color:sub===t?"#080808":"#555",fontSize:13,fontWeight:sub===t?700:400,border:`1px solid ${sub===t?G:"#222"}`,whiteSpace:"nowrap",flexShrink:0}}>{lb}</button>
+            ))}
+          </div>
+          {sub==="guide"&&<BeginnerGuide/>}
+          {sub==="chat"&&(
+            <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 180px)"}}>
+              <div style={{marginBottom:12}}>
+                <div style={{fontSize:9,color:G,letterSpacing:"2px",marginBottom:4}}>MEL MIRACLE AI COACH</div>
+                <h1 style={{fontSize:20,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Ask Me Anything</h1>
+                <p style={{fontSize:11,color:"#333",marginTop:2}}>Fitness, diet, sleep, mindset — I am here to help!</p>
+              </div>
+              <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:10,paddingBottom:14}}>
+                {msgs.map((m,i)=>(
+                  <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}>
+                    {m.role==="ai"&&<div style={{width:30,height:30,borderRadius:"50%",background:"#0d0900",border:`1px solid ${G}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,marginRight:8,flexShrink:0,marginTop:2}}>💪</div>}
+                    <div style={{maxWidth:"80%",padding:"11px 15px",borderRadius:m.role==="user"?"16px 16px 4px 16px":"4px 16px 16px 16px",background:m.role==="user"?G:"#0f0f0f",color:m.role==="user"?"#080808":"#c8c0b4",fontSize:14,lineHeight:1.7,border:m.role==="ai"?"1px solid #1a1a1a":"none",whiteSpace:"pre-wrap"}}>
+                      {m.text||<Spin/>}
+                    </div>
+                  </div>
+                ))}
+                <div ref={chatRef}/>
+              </div>
+              <div style={{borderTop:"1px solid #111",paddingTop:12,display:"flex",gap:8}}>
+                <input value={chatIn} onChange={e=>setChatIn(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&sendChat()} placeholder="Ask about workouts, diet, sleep, mindset..." style={{flex:1}}/>
+                <button onClick={sendChat} disabled={chatLoad||!chatIn.trim()} style={{padding:"12px 18px",borderRadius:10,fontWeight:700,fontSize:14,transition:"all .2s",background:chatLoad||!chatIn.trim()?"#111":G,color:chatLoad||!chatIn.trim()?"#333":"#080808"}}>
+                  {chatLoad?<Spin/>:"Send"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
