@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Build Your Muscles — by Mel Miracle</title>
+<meta name="application-name" content="Build Your Muscles"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="BYM"/>
+<meta name="theme-color" content="#080808"/>
+<meta name="description" content="AI-powered life transformation platform by Mel Miracle"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23C9A84C'/><text y='.9em' font-size='70' x='15'>💪</text></svg>"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overscroll-behavior:none}
+body{background:#080808;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#e8e2d9;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#080808}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px}
+input,select,textarea{background:#111;border:1px solid #222;color:#e0d8cc;border-radius:10px;padding:12px 14px;font-size:15px;width:100%;outline:none;font-family:inherit;transition:border-color .2s;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:#C9A84C;box-shadow:0 0 0 2px #C9A84C15}
+select option{background:#111}
+button{cursor:pointer;font-family:inherit;border:none;outline:none;-webkit-tap-highlight-color:transparent}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes glow{0%,100%{opacity:.6}50%{opacity:1}}
+.fade-up{animation:fadeUp .4s ease both}
+.cross-glow{animation:glow 3s ease infinite}
+@media(max-width:640px){
+  .desktop-nav{display:none!important}
+  .mobile-bottom{display:flex!important}
+  .page-pad{padding:14px 14px 90px 14px!important}
+}
+@media(min-width:641px){.mobile-bottom{display:none!important}}
+.mobile-bottom{position:fixed;bottom:0;left:0;right:0;background:#050505;border-top:1px solid #1a1a1a;display:none;padding:8px 0;padding-bottom:calc(8px + env(safe-area-inset-bottom));z-index:200}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback}=React;
+const GOLD="#C9A84C";
+const GROQ_KEY="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";
+const GROQ_URL="https://api.groq.com/openai/v1/chat/completions";
+
+const QUOTES=[
+  {q:"Every rep you do today is an investment in tomorrow's you.",a:"Mel Miracle"},
+  {q:"Pain is temporary. The body you build is forever.",a:"Fitness Wisdom"},
+  {q:"With God all things are possible. Including your transformation.",a:"Matthew 19:26"},
+  {q:"Your body is a temple. Honor it.",a:"1 Corinthians 6:19"},
+  {q:"Discipline is choosing between what you want now and what you want most.",a:"Abraham Lincoln"},
+  {q:"The only bad workout is the one that did not happen.",a:"Gym Truth"},
+  {q:"Sweat now. Shine later.",a:"Mel Miracle"},
+  {q:"Consistency beats perfection every single time.",a:"Mel Miracle"},
+  {q:"Strong is not a size. Strong is a mindset.",a:"Mel Miracle"},
+  {q:"Champions are made when nobody is watching.",a:"Gym Truth"},
+  {q:"Do something today that your future self will thank you for.",a:"Sean Patrick Flanery"},
+  {q:"It never gets easier. You just get stronger.",a:"Fitness Truth"},
+  {q:"Your only competition is who you were yesterday.",a:"Mel Miracle"},
+  {q:"Make yourself proud.",a:"Mel Miracle"},
+  {q:"Success is the sum of small efforts repeated day in and day out.",a:"Robert Collier"},
+  {q:"Wake up with determination. Go to bed with satisfaction.",a:"Daily Mindset"},
+  {q:"The secret to getting ahead is getting started.",a:"Mark Twain"},
+  {q:"Dream it. Believe it. Build it.",a:"Mel Miracle"},
+  {q:"Be stronger than your excuses.",a:"Mel Miracle"},
+  {q:"Rise up, start fresh, see the bright opportunity in each new day.",a:"Daily Motivation"},
+  {q:"Your health is your wealth. Invest in it daily.",a:"Mel Miracle"},
+  {q:"Train your mind as hard as you train your body.",a:"Mel Miracle"},
+  {q:"A little progress each day adds up to big results.",a:"Mel Miracle"},
+  {q:"The body achieves what the mind believes.",a:"Napoleon Hill"},
+  {q:"Great things never come from comfort zones.",a:"Neil Strauss"},
+  {q:"You did not come this far to only come this far.",a:"Gym Wisdom"},
+  {q:"Tough times never last, but tough people do.",a:"Robert H. Schuller"},
+  {q:"Be patient with yourself. Nothing in nature blooms all year.",a:"Wellness Truth"},
+  {q:"Your future belongs to those who prepare for it today.",a:"Malcolm X"},
+  {q:"Fall seven times, stand up eight.",a:"Japanese Proverb"},
+];
+
+const WORKOUT_TYPES=[
+  {id:"ppl",name:"Push / Pull / Legs",desc:"Most popular 6-day split. Push=chest/shoulders/triceps, Pull=back/biceps, Legs=quads/hamstrings/calves"},
+  {id:"upper_lower",name:"Upper / Lower Split",desc:"4-day split. Upper body Mon/Thu, Lower body Tue/Fri. Great for intermediate lifters"},
+  {id:"full_body",name:"Full Body 3x/Week",desc:"Train whole body Mon/Wed/Fri. Best for beginners and busy people"},
+  {id:"bro_split",name:"Bro Split (5 Day)",desc:"One muscle group per day. Chest Mon, Back Tue, Legs Wed, Shoulders Thu, Arms Fri"},
+  {id:"beginner",name:"Beginner Program",desc:"Simple 3-day full body. Learn all movements with proper form. Perfect for complete beginners"},
+  {id:"hiit",name:"HIIT & Cardio",desc:"High intensity intervals mixed with strength. Great for fat loss and improving fitness"},
+];
+
+const DIETS=["Standard Balanced","High Protein","Intermittent Fasting (16:8)","Keto / Low Carb","Vegan / Plant-Based","Vegetarian","Mediterranean","Anti-Inflammatory","PCOS Diet","Pregnancy Diet"];
+const CONDITIONS=["None","PCOS / PCOD","Pregnant (1st Trimester)","Pregnant (2nd Trimester)","Pregnant (3rd Trimester)","Knee Injury","Back Injury","Shoulder Injury","Hip Injury","Diabetes (Type 2)","Thyroid Issues","Other"];
+const RESTRICTIONS=["None","Vegetarian","Vegan","Gluten-Free","Dairy-Free","Halal","Kosher","Nut Allergy"];
+const GOALS=["Build Muscle","Lose Fat","Maintain & Tone","Improve Fitness","Post-Injury Recovery","Prenatal Fitness"];
+
+const BODY_TYPE_QUIZ=[
+  {q:"What best describes your natural build?",opts:["Very slim, hard to gain weight","Medium frame, gain/lose easily","Larger frame, gain weight easily"]},
+  {q:"How fast do you gain muscle?",opts:["Very slowly even when training","Moderately with consistent training","Quickly, but gain fat too"]},
+  {q:"What's your natural shoulder/hip ratio?",opts:["Narrow shoulders and hips","Broad shoulders, proportional","Wide hips and waist naturally"]},
+];
+
+const BEGINNER_GUIDE=[
+  {title:"What is a REP?",icon:"🔢",content:"A rep (repetition) is one complete movement. Example: One push-up from bottom to top and back down = 1 rep. Doing 10 push-ups = 10 reps."},
+  {title:"What is a SET?",icon:"📋",content:"A set is a group of reps done together. Example: 3 sets of 10 push-ups means you do 10 push-ups, rest, then 10 more, rest, then 10 more. Total = 30 push-ups."},
+  {title:"How does muscle grow?",icon:"💪",content:"When you lift weights, you create tiny tears in your muscle fibres. While you sleep and rest, your body repairs them BIGGER and STRONGER. This is why rest days are just as important as training days!"},
+  {title:"What is Protein?",icon:"🥩",content:"Protein is the building block of muscle. Think of it like bricks for a house — your muscles need protein to grow. Aim for 1.6-2g of protein per kg of your body weight per day. Sources: chicken, eggs, fish, lentils, Greek yogurt."},
+  {title:"What is BMI?",icon:"📊",content:"BMI (Body Mass Index) measures if your weight is healthy for your height. Under 18.5 = Underweight. 18.5-24.9 = Healthy. 25-29.9 = Overweight. 30+ = Obese. But BMI doesn't account for muscle, so use it as a guide only."},
+  {title:"Should I do cardio?",icon:"🏃",content:"Yes! Cardio improves heart health, burns calories and boosts energy. For fat loss: 3-4 cardio sessions per week. For muscle building: 1-2 light cardio sessions. Walking, cycling and swimming are great low-impact options."},
+  {title:"How much water should I drink?",icon:"💧",content:"Aim for at least 2-3 litres per day. More if you train hard. Signs of dehydration: headache, tiredness, dark urine. Drink a glass of water first thing when you wake up every morning!"},
+  {title:"How important is sleep?",icon:"😴",content:"VERY important! Your muscles actually grow while you sleep, not in the gym. Aim for 7-9 hours per night. Poor sleep = poor recovery = no results. Sleep is your free performance enhancer!"},
+];
+
+const HABITS=[
+  {id:"wake",label:"Wake up on time",icon:"🌅",defaultTime:"05:00"},
+  {id:"pray",label:"Prayer / Meditation",icon:"🙏",defaultTime:"05:15"},
+  {id:"water",label:"Drink water (first thing)",icon:"💧",defaultTime:"05:10"},
+  {id:"exercise",label:"Workout / Gym",icon:"💪",defaultTime:"06:00"},
+  {id:"breakfast",label:"Healthy breakfast",icon:"🍳",defaultTime:"07:30"},
+  {id:"study",label:"Study / Work",icon:"📚",defaultTime:"08:00"},
+  {id:"lunch",label:"Lunch",icon:"🍽️",defaultTime:"12:00"},
+  {id:"walk",label:"Walk / Light cardio",icon:"🚶",defaultTime:"13:00"},
+  {id:"sport",label:"Sports / Activity",icon:"⚽",defaultTime:"17:00"},
+  {id:"dinner",label:"Dinner",icon:"🌙",defaultTime:"19:00"},
+  {id:"read",label:"Reading / Learning",icon:"📖",defaultTime:"20:00"},
+  {id:"sleep",label:"Sleep",icon:"😴",defaultTime:"22:00"},
+];
+
+const ACHIEVEMENTS=[
+  {id:"first_plan",label:"First Plan",icon:"🎯",desc:"Generated your first fitness plan"},
+  {id:"week_1",label:"Week Warrior",icon:"⚔️",desc:"Completed 7 days of tracking"},
+  {id:"water_7",label:"Hydration Hero",icon:"💧",desc:"Hit water goal 7 days in a row"},
+  {id:"habit_streak_7",label:"7 Day Streak",icon:"🔥",desc:"Completed daily habits 7 days straight"},
+  {id:"habit_streak_30",label:"30 Day Champion",icon:"🏆",desc:"Completed daily habits 30 days straight"},
+  {id:"weight_loss",label:"Progress Maker",icon:"📉",desc:"Lost weight since starting"},
+  {id:"chat_10",label:"Coach's Student",icon:"🧠",desc:"Asked AI coach 10 questions"},
+  {id:"guide_complete",label:"Knowledge Seeker",icon:"📚",desc:"Read all beginner guides"},
+];
+
+function extractJSON(text){
+  try{return JSON.parse(text.trim());}catch(e){}
+  const m=text.match(/\{[\s\S]*\}/);
+  if(m){try{return JSON.parse(m[0]);}catch(e){}}
+  throw new Error("Could not parse response");
+}
+
+async function callAI(sys,msg,onChunk){
+  const r=await fetch(GROQ_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${GROQ_KEY}`},
+    body:JSON.stringify({model:"llama3-8b-8192",max_tokens:2000,stream:true,temperature:0.3,messages:[{role:"system",content:sys},{role:"user",content:msg}]})});
+  if(!r.ok)throw new Error("API error "+r.status);
+  const reader=r.body.getReader();const dec=new TextDecoder();let full="";
+  while(true){const{done,value}=await reader.read();if(done)break;
+    for(const line of dec.decode(value).split("\n")){
+      if(line.startsWith("data:")){const d=line.slice(5).trim();if(d==="[DONE]")break;
+        try{const j=JSON.parse(d);const c=j.choices?.[0]?.delta?.content;if(c){full+=c;if(onChunk)onChunk(full);}}catch(e){}
+      }
+    }
+  }
+  return full;
+}
+
+// Notification system
+function scheduleNotification(label,time){
+  if(!("Notification" in window))return;
+  if(Notification.permission!=="granted"){Notification.requestPermission();return;}
+  const[h,m]=time.split(":").map(Number);
+  const now=new Date();const target=new Date();
+  target.setHours(h,m,0,0);
+  if(target<=now)target.setDate(target.getDate()+1);
+  const delay=target-now;
+  setTimeout(()=>{
+    new Notification("Build Your Muscles ✝️",{body:`Time for: ${label}`,icon:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23C9A84C'/><text y='.9em' font-size='70' x='15'>💪</text></svg>"});
+  },delay);
+}
+
+const Spin=()=><div style={{display:"inline-block",width:13,height:13,border:"2px solid #2a2a2a",borderTop:`2px solid ${GOLD}`,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>;
+
+function CrossIcon(){
+  return(
+    <svg width="16" height="20" viewBox="0 0 16 20" className="cross-glow" style={{display:"inline-block",verticalAlign:"middle"}}>
+      <rect x="6.5" y="0" width="3" height="20" rx="1.5" fill={GOLD}/>
+      <rect x="0" y="5" width="16" height="3" rx="1.5" fill={GOLD}/>
+    </svg>
+  );
+}
+
+function GoldLabel({children}){return <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><div style={{width:18,height:2,background:GOLD,borderRadius:1,opacity:.7}}/><span style={{fontSize:10,color:"#555",letterSpacing:"1.5px"}}>{children}</span></div>;}
+
+function GCard({children,style={},hi=false}){return <div style={{background:"#0d0d0d",border:`1px solid ${hi?GOLD+"33":"#1a1a1a"}`,borderRadius:14,padding:"16px 18px",...style}}>{children}</div>;}
+
+function Tag({label,active,color,onClick}){const c=color||GOLD;return <button onClick={onClick} style={{padding:"8px 14px",borderRadius:20,border:`1px solid ${active?c+"55":"#1e1e1e"}`,background:active?c+"15":"#0a0a0a",color:active?c:"#444",fontSize:13,transition:"all .2s",whiteSpace:"nowrap"}}>{label}</button>;}
+
+function WaterTracker(){
+  const key="bym_water_"+new Date().toDateString();
+  const [cups,setCups]=useState(()=>{try{return parseInt(localStorage.getItem(key)||"0");}catch(e){return 0;}});
+  const goal=8;
+  function add(i){const n=i+1===cups?i:i+1;setCups(n);localStorage.setItem(key,String(n));}
+  return(
+    <GCard style={{marginBottom:14}}>
+      <GoldLabel>DAILY WATER INTAKE</GoldLabel>
+      <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:10}}>
+        <div style={{flex:1}}>
+          <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap"}}>
+            {Array.from({length:goal},(_,i)=><button key={i} onClick={()=>add(i)} style={{fontSize:26,background:"none",border:"none",opacity:i<cups?1:.2,transition:"all .25s",cursor:"pointer"}}>{i<cups?"💧":"🩵"}</button>)}
+          </div>
+          <div style={{height:6,background:"#1a1a1a",borderRadius:3,overflow:"hidden"}}>
+            <div style={{height:"100%",width:`${Math.round((cups/goal)*100)}%`,background:cups>=goal?"#6aaa3a":GOLD,borderRadius:3,transition:"width .4s"}}/>
+          </div>
+        </div>
+        <div style={{textAlign:"center",minWidth:56}}>
+          <div style={{fontSize:28,fontWeight:900,color:cups>=goal?"#6aaa3a":GOLD,fontFamily:"Georgia,serif"}}>{cups}</div>
+          <div style={{fontSize:10,color:"#444"}}>of {goal}</div>
+          {cups>=goal&&<div style={{fontSize:10,color:"#6aaa3a"}}>Done! 🎉</div>}
+        </div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between"}}>
+        <span style={{fontSize:12,color:"#444"}}>{cups===0?"Tap a drop to log water":cups<goal?"Keep drinking!":"Hydration goal achieved!"}</span>
+        <button onClick={()=>{setCups(0);localStorage.setItem(key,"0");}} style={{fontSize:11,color:"#333",background:"none",border:"none",textDecoration:"underline"}}>reset</button>
+      </div>
+    </GCard>
+  );
+}
+
+function BMIChart({updates,currentBMI}){
+  const profile=JSON.parse(localStorage.getItem("bym_profile")||"{}");
+  const hM=profile.height?(+profile.height/100):null;
+  let pts=updates.filter(u=>u.weight&&hM).map(u=>({date:u.date,bmi:+(+u.weight/(hM*hM)).toFixed(1)}));
+  if(pts.length===0&&currentBMI)pts=[{date:"Now",bmi:currentBMI}];
+  if(!pts.length)return null;
+  const vals=pts.map(p=>p.bmi),minV=Math.min(...vals,16),maxV=Math.max(...vals,33),range=maxV-minV||1;
+  const W=520,H=100,PL=32,PR=12,PT=18,PB=20;
+  const cx=i=>PL+(i/Math.max(pts.length-1,1))*(W-PL-PR);
+  const cy=v=>PT+(1-(v-minV)/range)*(H-PT-PB);
+  const bc=b=>b<18.5?"#378ADD":b<25?"#6aaa3a":b<30?GOLD:"#E24B4A";
+  return(
+    <GCard style={{marginBottom:14}}>
+      <GoldLabel>BMI PROGRESS CHART</GoldLabel>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:H}}>
+        {[18.5,25,30].map(v=><g key={v}><line x1={PL} y1={cy(v)} x2={W-PR} y2={cy(v)} stroke="#1e1e1e" strokeWidth="1" strokeDasharray="4,4"/><text x={PL-4} y={cy(v)} textAnchor="end" dominantBaseline="middle" fontSize="9" fill="#444">{v}</text></g>)}
+        {pts.length>1&&<polyline fill="none" stroke={GOLD} strokeWidth="2" strokeLinejoin="round" points={pts.map((p,i)=>`${cx(i)},${cy(p.bmi)}`).join(" ")}/>}
+        {pts.map((p,i)=><g key={i}><circle cx={cx(i)} cy={cy(p.bmi)} r={5} fill={bc(p.bmi)} stroke="#080808" strokeWidth="2"/><text x={cx(i)} y={cy(p.bmi)-10} textAnchor="middle" fontSize="9" fill={bc(p.bmi)} fontWeight="700">{p.bmi}</text><text x={cx(i)} y={H-3} textAnchor="middle" fontSize="8" fill="#333">{(p.date||"").split(" ").slice(0,2).join(" ")}</text></g>)}
+      </svg>
+      <div style={{display:"flex",gap:12,marginTop:6,flexWrap:"wrap"}}>
+        {[["#378ADD","Underweight"],["#6aaa3a","Healthy"],["#C9A84C","Overweight"],["#E24B4A","Obese"]].map(([c,l])=><div key={l} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:8,height:8,borderRadius:"50%",background:c}}/><span style={{fontSize:10,color:"#444"}}>{l}</span></div>)}
+      </div>
+    </GCard>
+  );
+}
+
+function QuoteBanner({quote,onNext}){
+  const [vis,setVis]=useState(true);
+  return(
+    <div style={{position:"relative",background:"linear-gradient(135deg,#0d0a00,#100c00)",border:`1px solid ${GOLD}22`,borderRadius:16,padding:"22px 24px",marginBottom:14,overflow:"hidden"}}>
+      <svg style={{position:"absolute",right:0,top:0,opacity:.06,pointerEvents:"none"}} width="140" height="120" viewBox="0 0 200 160"><circle cx="160" cy="40" r="90" fill="none" stroke={GOLD} strokeWidth="1"/><circle cx="160" cy="40" r="50" fill={GOLD} opacity=".2"/></svg>
+      <div style={{position:"relative",zIndex:1}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><div style={{width:16,height:2,background:GOLD,borderRadius:1}}/><span style={{fontSize:9,color:GOLD,letterSpacing:"2px"}}>DAILY MOTIVATION</span></div>
+        <div style={{opacity:vis?1:0,transition:"opacity .25s"}}>
+          <div style={{fontSize:15,fontWeight:700,color:"#f0e8d8",lineHeight:1.6,fontFamily:"Georgia,serif",marginBottom:8}}>"{quote.q}"</div>
+          <div style={{fontSize:11,color:GOLD}}>— {quote.a}</div>
+        </div>
+        <button onClick={()=>{setVis(false);setTimeout(()=>{onNext();setVis(true);},250);}} style={{marginTop:12,padding:"6px 16px",borderRadius:14,background:"transparent",border:`1px solid ${GOLD}33`,color:GOLD,fontSize:11}}>Next ›</button>
+      </div>
+    </div>
+  );
+}
+
+function BodyTypeQuiz({onResult}){
+  const [step,setStep]=useState(0);
+  const [answers,setAnswers]=useState([]);
+  function pick(i){
+    const a=[...answers,i];
+    if(step<BODY_TYPE_QUIZ.length-1){setAnswers(a);setStep(step+1);}
+    else{
+      const sum=a.reduce((s,v)=>s+v,0);
+      const type=sum<=2?"Ecto":sum<=5?"Meso":"Endo";
+      onResult(type);
+    }
+  }
+  const q=BODY_TYPE_QUIZ[step];
+  return(
+    <GCard style={{marginBottom:14,border:`1px solid ${GOLD}33`}}>
+      <div style={{fontSize:10,color:GOLD,letterSpacing:"1.5px",marginBottom:8}}>BODY TYPE QUIZ — QUESTION {step+1} OF {BODY_TYPE_QUIZ.length}</div>
+      <div style={{fontSize:15,color:"#e0d8cc",fontWeight:600,marginBottom:14,lineHeight:1.5}}>{q.q}</div>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {q.opts.map((opt,i)=>(
+          <button key={i} onClick={()=>pick(i)} style={{padding:"12px 16px",borderRadius:10,background:"#111",border:"1px solid #222",color:"#ccc",fontSize:13,textAlign:"left",transition:"all .2s"}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor=GOLD} onMouseLeave={e=>e.currentTarget.style.borderColor="#222"}>
+            {opt}
+          </button>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:6,marginTop:12}}>
+        {BODY_TYPE_QUIZ.map((_,i)=><div key={i} style={{height:3,flex:1,borderRadius:2,background:i<=step?GOLD:"#1a1a1a"}}/>)}
+      </div>
+    </GCard>
+  );
+}
+
+function DayCard({day,weekLabel}){
+  const [open,setOpen]=useState(false);
+  const rest=!day.exercises||day.exercises.length===0;
+  return(
+    <div style={{border:`1px solid ${open?GOLD+"25":"#161616"}`,borderRadius:14,overflow:"hidden",marginBottom:8}}>
+      <div onClick={()=>setOpen(o=>!o)} style={{padding:"14px 18px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",background:"#0d0d0d"}}>
+        {weekLabel&&<span style={{fontSize:9,color:GOLD,background:GOLD+"15",padding:"2px 8px",borderRadius:8,whiteSpace:"nowrap"}}>{weekLabel}</span>}
+        <div style={{fontSize:11,fontWeight:700,color:"#444",width:60,letterSpacing:"1px"}}>{(day.day||"").toUpperCase().slice(0,3)}</div>
+        <div style={{flex:1}}>
+          <span style={{fontSize:13,color:"#d8cfc0",fontFamily:"Georgia,serif"}}>{day.focus}</span>
+          {rest?<span style={{marginLeft:8,fontSize:10,color:GOLD,background:GOLD+"15",padding:"2px 8px",borderRadius:8}}>REST</span>
+          :<span style={{marginLeft:8,fontSize:11,color:"#444"}}>{day.exercises.length} exercises</span>}
+        </div>
+        <span style={{color:"#333",transform:open?"rotate(180deg)":"none",transition:"transform .25s"}}>▾</span>
+      </div>
+      {open&&(
+        <div style={{background:"#090909",padding:"16px 18px",borderTop:"1px solid #141414"}}>
+          {day.safetyNote&&<div style={{background:"#1a0f00",border:`1px solid ${GOLD}33`,borderRadius:10,padding:"10px 14px",marginBottom:12,fontSize:13,color:"#BA7517"}}>⚠ {day.safetyNote}</div>}
+          {!rest&&day.exercises?.length>0&&(
+            <div style={{marginBottom:14}}>
+              <div style={{fontSize:10,color:"#444",letterSpacing:"1.5px",marginBottom:8}}>EXERCISES</div>
+              {day.exercises.map((ex,i)=>(
+                <div key={i} style={{background:"#0f0f0f",border:"1px solid #161616",borderRadius:10,padding:"10px 14px",marginBottom:6}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:ex.tip?"6px":"0"}}>
+                    <div style={{width:22,height:22,borderRadius:"50%",background:GOLD+"20",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:GOLD,fontWeight:800,flexShrink:0}}>{i+1}</div>
+                    <div style={{flex:1,fontSize:13,color:"#ccc",fontWeight:600}}>{ex.name}</div>
+                    <div style={{fontSize:12,color:"#555"}}>{ex.sets}×{ex.reps}</div>
+                    <div style={{fontSize:11,color:"#2a2a2a",marginLeft:8}}>{ex.rest}</div>
+                  </div>
+                  {ex.tip&&<div style={{fontSize:11,color:"#666",lineHeight:1.5,marginLeft:32}}>💡 {ex.tip}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+          {day.diet&&(
+            <div>
+              <div style={{fontSize:10,color:"#444",letterSpacing:"1.5px",marginBottom:10}}>MEALS WITH PORTIONS</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                {[["🌅","Breakfast",day.diet.breakfast],["☀️","Lunch",day.diet.lunch],["🌙","Dinner",day.diet.dinner],["🍎","Snacks",day.diet.snacks]].map(([ic,lb,v])=>(
+                  <div key={lb} style={{padding:"10px 12px",background:"#0c0c0c",borderRadius:10,border:"1px solid #161616"}}>
+                    <div style={{fontSize:9,color:"#444",marginBottom:5,letterSpacing:"1px"}}>{ic} {lb.toUpperCase()}</div>
+                    <div style={{fontSize:12,color:"#aaa",lineHeight:1.5}}>{v}</div>
+                  </div>
+                ))}
+              </div>
+              {day.diet.swap&&<div style={{padding:"8px 12px",background:"#0a1a0a",border:"1px solid #1a3a1a",borderRadius:8,fontSize:12,color:"#5aaa5a"}}>🔄 Food Swap: {day.diet.swap}</div>}
+              {day.diet.ifWindow&&<div style={{padding:"8px 12px",background:GOLD+"10",borderRadius:8,fontSize:12,color:GOLD,marginTop:6}}>⏱ Eating Window: {day.diet.ifWindow}</div>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HabitTracker(){
+  const todayKey="bym_habits_"+new Date().toDateString();
+  const streakKey="bym_streak";
+  const [habits,setHabits]=useState(()=>{
+    try{return JSON.parse(localStorage.getItem("bym_habit_config")||JSON.stringify(HABITS.map(h=>({...h,time:h.defaultTime,enabled:true}))));}
+    catch(e){return HABITS.map(h=>({...h,time:h.defaultTime,enabled:true}));}
+  });
+  const [done,setDone]=useState(()=>{try{return JSON.parse(localStorage.getItem(todayKey)||"[]");}catch(e){return [];}});
+  const [editMode,setEditMode]=useState(false);
+  const [streak,setStreak]=useState(()=>{try{return parseInt(localStorage.getItem(streakKey)||"0");}catch(e){return 0;}});
+  const [notifGranted,setNotifGranted]=useState(false);
+
+  const enabledHabits=habits.filter(h=>h.enabled);
+  const pct=enabledHabits.length>0?Math.round((done.length/enabledHabits.length)*100):0;
+
+  function toggle(id){
+    const newDone=done.includes(id)?done.filter(d=>d!==id):[...done,id];
+    setDone(newDone);
+    localStorage.setItem(todayKey,JSON.stringify(newDone));
+  }
+
+  async function requestNotif(){
+    if("Notification" in window){
+      const perm=await Notification.requestPermission();
+      if(perm==="granted"){
+        setNotifGranted(true);
+        habits.filter(h=>h.enabled).forEach(h=>scheduleNotification(h.label,h.time));
+        alert("Notifications enabled! You will be reminded for each habit at the scheduled time.");
+      }
+    }
+  }
+
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <div>
+          <div style={{fontSize:20,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Daily Planner</div>
+          <div style={{fontSize:12,color:"#444",marginTop:2}}>{new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long"})}</div>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={requestNotif} style={{padding:"8px 14px",borderRadius:10,background:"#111",border:"1px solid #222",color:"#888",fontSize:12}}>🔔 Reminders</button>
+          <button onClick={()=>setEditMode(e=>!e)} style={{padding:"8px 14px",borderRadius:10,background:editMode?GOLD+"20":"#111",border:`1px solid ${editMode?GOLD+"44":"#222"}`,color:editMode?GOLD:"#888",fontSize:12}}>{editMode?"Done":"⚙️ Edit"}</button>
+        </div>
+      </div>
+
+      {/* Progress Ring */}
+      <GCard style={{marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:16}}>
+          <svg width="72" height="72" viewBox="0 0 72 72">
+            <circle cx="36" cy="36" r="30" fill="none" stroke="#1a1a1a" strokeWidth="6"/>
+            <circle cx="36" cy="36" r="30" fill="none" stroke={pct>=100?"#6aaa3a":GOLD} strokeWidth="6"
+              strokeDasharray={`${2*Math.PI*30}`} strokeDashoffset={`${2*Math.PI*30*(1-pct/100)}`}
+              strokeLinecap="round" transform="rotate(-90 36 36)" style={{transition:"stroke-dashoffset .5s"}}/>
+            <text x="36" y="40" textAnchor="middle" fontSize="16" fontWeight="900" fill={pct>=100?"#6aaa3a":GOLD} fontFamily="Georgia,serif">{pct}%</text>
+          </svg>
+          <div style={{flex:1}}>
+            <div style={{fontSize:15,color:"#e0d8cc",fontWeight:700}}>{done.length} of {enabledHabits.length} completed</div>
+            <div style={{fontSize:12,color:"#555",marginTop:3}}>{pct===100?"Perfect day! Well done! 🎉":pct>=50?"Great progress! Keep going!":"Let's get started! You can do this!"}</div>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8}}>
+              <span style={{fontSize:18}}>🔥</span>
+              <span style={{fontSize:13,color:GOLD,fontWeight:700}}>{streak} day streak</span>
+            </div>
+          </div>
+        </div>
+      </GCard>
+
+      {/* Habit List */}
+      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
+        {habits.filter(h=>h.enabled||editMode).map((h,i)=>(
+          <div key={h.id} style={{background:"#0d0d0d",border:`1px solid ${done.includes(h.id)?"#6aaa3a33":"#1a1a1a"}`,borderRadius:12,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,transition:"all .2s"}}>
+            <button onClick={()=>toggle(h.id)} style={{width:28,height:28,borderRadius:"50%",background:done.includes(h.id)?"#6aaa3a":"#111",border:`2px solid ${done.includes(h.id)?"#6aaa3a":"#333"}`,display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontSize:14,flexShrink:0,transition:"all .2s"}}>
+              {done.includes(h.id)?"✓":""}
+            </button>
+            <span style={{fontSize:20,flexShrink:0}}>{h.icon}</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:14,color:done.includes(h.id)?"#6aaa3a":"#d0c8bc",textDecoration:done.includes(h.id)?"line-through":"none",transition:"all .2s"}}>{h.label}</div>
+              <div style={{fontSize:11,color:"#444",marginTop:2}}>{h.time}</div>
+            </div>
+            {editMode&&(
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <input type="time" value={h.time} onChange={e=>{const nh=habits.map((x,j)=>j===i?{...x,time:e.target.value}:x);setHabits(nh);localStorage.setItem("bym_habit_config",JSON.stringify(nh));}} style={{width:100,padding:"4px 8px",fontSize:12,background:"#111",border:"1px solid #222",borderRadius:6,color:"#aaa"}}/>
+                <button onClick={()=>{const nh=habits.map((x,j)=>j===i?{...x,enabled:!x.enabled}:x);setHabits(nh);localStorage.setItem("bym_habit_config",JSON.stringify(nh));}} style={{fontSize:11,padding:"4px 10px",borderRadius:8,background:h.enabled?"#E24B4A20":"#6aaa3a20",color:h.enabled?"#E24B4A":"#6aaa3a",border:`1px solid ${h.enabled?"#E24B4A33":"#6aaa3a33"}`}}>{h.enabled?"Hide":"Show"}</button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Sleep Tracker */}
+      <GCard style={{marginBottom:14}}>
+        <GoldLabel>😴 SLEEP TRACKER</GoldLabel>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+          <div>
+            <label style={{fontSize:10,color:"#444",display:"block",marginBottom:5,letterSpacing:"1px"}}>BEDTIME</label>
+            <input type="time" defaultValue="22:00" id="bedtime" style={{fontSize:14}}/>
+          </div>
+          <div>
+            <label style={{fontSize:10,color:"#444",display:"block",marginBottom:5,letterSpacing:"1px"}}>WAKE TIME</label>
+            <input type="time" defaultValue="05:00" id="waketime" style={{fontSize:14}}/>
+          </div>
+        </div>
+        <div style={{padding:"10px 14px",background:"#111",borderRadius:10,fontSize:13,color:"#888"}}>
+          💡 Tip: Aim for <span style={{color:GOLD,fontWeight:700}}>7-9 hours</span> of sleep. Your muscles grow while you sleep, not in the gym!
+        </div>
+      </GCard>
+    </div>
+  );
+}
+
+function BeginnerGuide(){
+  const [read,setRead]=useState(()=>{try{return JSON.parse(localStorage.getItem("bym_guide_read")||"[]");}catch(e){return [];}});
+  const [open,setOpen]=useState(null);
+  function markRead(i){
+    const nr=read.includes(i)?read:[...read,i];
+    setRead(nr);localStorage.setItem("bym_guide_read",JSON.stringify(nr));
+  }
+  return(
+    <div>
+      <div style={{marginBottom:16}}>
+        <div style={{fontSize:9,color:GOLD,letterSpacing:"2px",marginBottom:6}}>FOR BEGINNERS</div>
+        <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Fitness 101</h1>
+        <p style={{color:"#444",fontSize:13,marginTop:4}}>Everything you need to know if you are just starting out</p>
+        <div style={{marginTop:8,fontSize:12,color:GOLD}}>{read.length}/{BEGINNER_GUIDE.length} guides read</div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+        {BEGINNER_GUIDE.map((g,i)=>(
+          <div key={i} onClick={()=>{setOpen(open===i?null:i);markRead(i);}} style={{background:"#0d0d0d",border:`1px solid ${read.includes(i)?GOLD+"44":"#1a1a1a"}`,borderRadius:12,padding:"14px",cursor:"pointer",transition:"all .2s"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+              <span style={{fontSize:22}}>{g.icon}</span>
+              {read.includes(i)&&<span style={{fontSize:10,color:GOLD}}>✓ Read</span>}
+            </div>
+            <div style={{fontSize:13,fontWeight:700,color:"#d0c8bc",marginBottom:4}}>{g.title}</div>
+            {open===i&&<div style={{fontSize:12,color:"#888",lineHeight:1.6,marginTop:8,borderTop:"1px solid #1a1a1a",paddingTop:8}}>{g.content}</div>}
+          </div>
+        ))}
+      </div>
+      <GCard hi style={{marginBottom:14}}>
+        <div style={{fontSize:10,color:GOLD,letterSpacing:"1.5px",marginBottom:10}}>🏆 BEGINNER ROADMAP — 12 WEEKS</div>
+        {[["Week 1-2","Learn the basics. 3x full body workouts. Focus on form not weight.","#6aaa3a"],["Week 3-4","Add weight slowly. Track what you eat. Hit protein goal.","#6aaa3a"],["Week 5-8","Increase intensity. Try new exercises. Build consistency.","#C9A84C"],["Week 9-12","You are not a beginner anymore! Move to an intermediate program.","#C9A84C"]].map(([wk,desc,col])=>(
+          <div key={wk} style={{display:"flex",gap:12,marginBottom:10,alignItems:"flex-start"}}>
+            <div style={{width:80,fontSize:11,fontWeight:700,color:col,flexShrink:0}}>{wk}</div>
+            <div style={{fontSize:12,color:"#666",lineHeight:1.5}}>{desc}</div>
+          </div>
+        ))}
+      </GCard>
+    </div>
+  );
+}
+
+function Achievements({plan,updates,chatCount}){
+  const unlocked=[];
+  if(plan)unlocked.push("first_plan");
+  if(updates.length>=7)unlocked.push("week_1");
+  if(updates.length>=1&&+updates[updates.length-1].weight<+updates[0].weight)unlocked.push("weight_loss");
+  if(chatCount>=10)unlocked.push("chat_10");
+  const readGuides=JSON.parse(localStorage.getItem("bym_guide_read")||"[]");
+  if(readGuides.length>=BEGINNER_GUIDE.length)unlocked.push("guide_complete");
+  return(
+    <div>
+      <div style={{marginBottom:16}}>
+        <div style={{fontSize:9,color:GOLD,letterSpacing:"2px",marginBottom:6}}>YOUR WINS</div>
+        <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Achievements</h1>
+        <p style={{color:"#444",fontSize:13,marginTop:4}}>{unlocked.length} of {ACHIEVEMENTS.length} unlocked</p>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        {ACHIEVEMENTS.map(a=>{
+          const got=unlocked.includes(a.id);
+          return(
+            <div key={a.id} style={{background:got?"#0d0900":"#0a0a0a",border:`1px solid ${got?GOLD+"44":"#1a1a1a"}`,borderRadius:12,padding:"16px 14px",textAlign:"center",opacity:got?1:.5,transition:"all .3s"}}>
+              <div style={{fontSize:32,marginBottom:8,filter:got?"none":"grayscale(1)"}}>{a.icon}</div>
+              <div style={{fontSize:13,fontWeight:700,color:got?GOLD:"#555",marginBottom:4}}>{a.label}</div>
+              <div style={{fontSize:11,color:"#444",lineHeight:1.4}}>{a.desc}</div>
+              {got&&<div style={{fontSize:10,color:GOLD,marginTop:8,letterSpacing:"1px"}}>✓ UNLOCKED</div>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const today=new Date();
+  const doy=Math.floor((today-new Date(today.getFullYear(),0,0))/86400000);
+  const [tab,setTab]=useState("home");
+  const [subTab,setSubTab]=useState("plan");
+  const [qIdx,setQIdx]=useState(doy%QUOTES.length);
+  const [profile,setProfile]=useState({name:"",age:"",gender:"Male",height:"",weight:"",activity:"Moderate",goal:"Build Muscle",currentType:"Ecto",targetType:"Meso",dietPref:"Standard Balanced",condition:"None",restriction:"None",workoutType:"full_body",showQuiz:false});
+  const [plan,setPlan]=useState(null);
+  const [loading,setLoading]=useState(false);
+  const [loadMsg,setLoadMsg]=useState("");
+  const [weekB,setWeekB]=useState(null);
+  const [msgs,setMsgs]=useState([{role:"ai",text:"Hey! I am your AI fitness coach by Mel Miracle ✝️💪\n\nAsk me anything about workouts, diet, nutrition, body types, sleep, or your fitness journey!"}]);
+  const [chatIn,setChatIn]=useState("");
+  const [chatLoad,setChatLoad]=useState(false);
+  const [chatCount,setChatCount]=useState(0);
+  const [updates,setUpdates]=useState([]);
+  const [upForm,setUpForm]=useState({weight:"",waist:"",chest:"",energy:"Medium",days:""});
+  const chatEndRef=useRef(null);
+  const setP=(k,v)=>setProfile(p=>({...p,[k]:v}));
+
+  useEffect(()=>{
+    try{
+      const d=localStorage.getItem("bym_profile");const pl=localStorage.getItem("bym_plan");
+      const u=localStorage.getItem("bym_updates");const wb=localStorage.getItem("bym_week_b");
+      const cc=localStorage.getItem("bym_chat_count");
+      if(d)setProfile(JSON.parse(d));if(pl)setPlan(JSON.parse(pl));
+      if(u)setUpdates(JSON.parse(u));if(wb)setWeekB(JSON.parse(wb));
+      if(cc)setChatCount(parseInt(cc));
+    }catch(e){}
+  },[]);
+  useEffect(()=>{chatEndRef.current?.scrollIntoView({behavior:"smooth"})},[msgs]);
+
+  const bmi=profile.height&&profile.weight?+(+profile.weight/((+profile.height/100)**2)).toFixed(1):null;
+  const btMap={Ecto:"Ectomorph",Meso:"Mesomorph",Endo:"Endomorph"};
+
+  const btExamples={
+    Ecto:{label:"Ectomorph",desc:"Lean and Long",example:"Think: tall slim runners, basketball players like early Lebron James. Hard to gain weight. Fast metabolism.",tip:"Eat more calories! Focus on high-protein, calorie-dense foods. Lift heavy compound movements.",icon:"🦴"},
+    Meso:{label:"Mesomorph",desc:"Athletic and Defined",example:"Think: gymnasts, swimmers like Michael Phelps. Gain muscle and lose fat relatively easily.",tip:"Lucky body type! Balanced training with both cardio and weights. Moderate calorie intake.",icon:"💪"},
+    Endo:{label:"Endomorph",desc:"Broader and Stockier",example:"Think: powerlifters, rugby players. Gain muscle AND fat easily. Slower metabolism.",tip:"Prioritise cardio and HIIT alongside weights. Control carb intake. Focus on portion sizes.",icon:"🏋️"},
+  };
+
+  function buildSys(){return`You are an expert AI fitness coach for "Build Your Muscles by Mel Miracle". User: ${profile.name||"User"}, ${profile.age}yrs, ${profile.gender}, ${profile.height}cm, ${profile.weight}kg. Goal: ${profile.goal}. Diet: ${profile.dietPref}. Condition: ${profile.condition}. Workout type: ${profile.workoutType}. ONLY discuss fitness, nutrition, workouts, diet, body types, recovery, sleep, supplements, mindset, health. Be warm, motivating, use simple clear language. Always consider health conditions for safe advice.`;}
+
+  async function generatePlan(){
+    if(!profile.height||!profile.weight||!profile.age){alert("Please fill in your age, height and weight first.");return;}
+    setLoading(true);setPlan(null);setWeekB(null);
+    const lm=["Analysing your body...","Designing your workout split...","Crafting detailed diet...","Building Week A & Week B..."];
+    let mi=0;setLoadMsg(lm[0]);
+    const iv=setInterval(()=>{mi=(mi+1)%lm.length;setLoadMsg(lm[mi]);},1800);
+
+    const wt=WORKOUT_TYPES.find(w=>w.id===profile.workoutType)||WORKOUT_TYPES[2];
+    const sys=`You are a professional fitness plan generator. Return ONLY valid JSON. No markdown. No backticks. Start directly with {`;
+    const prompt=`Generate a detailed 7-day fitness plan JSON. No markdown. Start with {
+
+Profile: Name=${profile.name||"User"}, Age=${profile.age}, Gender=${profile.gender}, Height=${profile.height}cm, Weight=${profile.weight}kg, BMI=${bmi}
+Goal=${profile.goal}, Activity=${profile.activity}, Diet=${profile.dietPref}
+Workout Split: ${wt.name} - ${wt.desc}
+Health Condition=${profile.condition}, Dietary Restriction=${profile.restriction}
+Current Body Type=${btMap[profile.currentType]}, Target=${btMap[profile.targetType]}
+
+SAFETY: Pregnant=no crunches/heavy. PCOS=low-GI. Knee=no squats/lunges. Back=no deadlifts. Shoulder=no overhead press.
+
+Each exercise MUST include a "tip" field with a beginner form tip.
+Each meal MUST include exact portions e.g. "150g chicken, 1 cup brown rice, 1 tbsp olive oil"
+Each day diet MUST include a "swap" field with a food substitution option.
+
+JSON structure:
+{"summary":"2 personalised sentences","conditionNote":"health condition note or empty string","calories":2000,"protein":140,"carbs":200,"fat":65,"proteinFoods":"comma separated list of 5 best protein sources for them","dietTypeNote":"why this diet suits them","groceryList":["item1","item2","item3","item4","item5","item6","item7","item8"],"weekPlan":[{"day":"Monday","focus":"Chest and Triceps","safetyNote":"","exercises":[{"name":"Push-Ups","sets":3,"reps":"12","rest":"60s","tip":"Keep your core tight and lower chest to the floor"},{"name":"Dumbbell Press","sets":3,"reps":"10","rest":"60s","tip":"Control the weight down slowly for 2 seconds"}],"diet":{"breakfast":"3 scrambled eggs, 2 slices wholegrain toast, 1 banana","lunch":"150g grilled chicken, 1 cup brown rice, steamed broccoli","dinner":"200g salmon fillet, sweet potato, green salad","snacks":"Greek yogurt 200g with 30g almonds","swap":"No salmon? Use 200g white fish or 2 cans tuna","ifWindow":""}},{"day":"Tuesday","focus":"Back and Biceps","safetyNote":"","exercises":[{"name":"Dumbbell Rows","sets":3,"reps":"10","rest":"60s","tip":"Keep your back flat like a table, pull elbow to hip"},{"name":"Bicep Curls","sets":3,"reps":"12","rest":"45s","tip":"No swinging! Control the weight both up and down"}],"diet":{"breakfast":"Oats 80g with banana and 30g protein powder","lunch":"2 tuna wraps with salad and hummus","dinner":"Beef stir fry 200g with noodles and vegetables","snacks":"2 boiled eggs and apple","swap":"No beef? Use 200g chicken or tofu","ifWindow":""}},{"day":"Wednesday","focus":"Rest and Recovery","safetyNote":"","exercises":[],"diet":{"breakfast":"Smoothie with banana, spinach, protein powder and almond milk","lunch":"Lentil soup 400ml with wholegrain bread","dinner":"Grilled fish 200g with mixed salad","snacks":"Mixed fruit and 20g dark chocolate","swap":"No fish? Use 2 eggs or cottage cheese","ifWindow":""}},{"day":"Thursday","focus":"Legs and Glutes","safetyNote":"","exercises":[{"name":"Goblet Squat","sets":3,"reps":"12","rest":"60s","tip":"Push knees outward and keep chest up throughout"},{"name":"Romanian Deadlift","sets":3,"reps":"10","rest":"90s","tip":"Hinge at hips, feel the stretch in hamstrings, keep back straight"}],"diet":{"breakfast":"Avocado toast 2 slices with 2 poached eggs","lunch":"Turkey and salad wrap with hummus","dinner":"Pasta 200g dry with tomato sauce and minced beef 150g","snacks":"Rice cakes with peanut butter 2 tbsp","swap":"No turkey? Use chicken or tuna","ifWindow":""}},{"day":"Friday","focus":"Shoulders and Core","safetyNote":"","exercises":[{"name":"Dumbbell Shoulder Press","sets":3,"reps":"10","rest":"60s","tip":"Press directly overhead, do not let elbows flare too wide"},{"name":"Plank Hold","sets":3,"reps":"45 seconds","rest":"30s","tip":"Keep hips level, squeeze glutes and breathe steadily"}],"diet":{"breakfast":"Protein pancakes 3 with berries and honey","lunch":"Quinoa 150g with chickpeas, cucumber and feta","dinner":"Grilled chicken 200g with sweet potato and broccoli","snacks":"Protein bar and banana","swap":"No quinoa? Use brown rice or couscous","ifWindow":""}},{"day":"Saturday","focus":"Full Body Strength","safetyNote":"","exercises":[{"name":"Kettlebell Swings","sets":3,"reps":"15","rest":"60s","tip":"Power comes from hips, not arms. Snap hips forward explosively"},{"name":"Push-Ups","sets":3,"reps":"15","rest":"45s","tip":"Full range of motion — chest touches floor each rep"}],"diet":{"breakfast":"French toast 2 slices with fruit and Greek yogurt","lunch":"Chicken burrito bowl with rice, beans and salsa","dinner":"Steak 200g with roasted vegetables and olive oil","snacks":"Dark chocolate 30g and mixed nuts 30g","swap":"No steak? Use 200g chicken thighs or pork","ifWindow":""}},{"day":"Sunday","focus":"Active Recovery","safetyNote":"","exercises":[],"diet":{"breakfast":"Overnight oats 80g with honey and berries","lunch":"Caesar salad with 150g grilled chicken","dinner":"Vegetable curry with 150g chickpeas and brown rice","snacks":"Mixed nuts 30g and herbal tea","swap":"No chickpeas? Use lentils or tofu","ifWindow":""}}]}`;
+
+    try{
+      const full=await callAI(sys,prompt,null);
+      const parsed=extractJSON(full);
+      setPlan(parsed);
+      localStorage.setItem("bym_plan",JSON.stringify(parsed));
+      localStorage.setItem("bym_profile",JSON.stringify(profile));
+      setTab("plan");setSubTab("plan");
+
+      // Generate Week B
+      setTimeout(async()=>{
+        try{
+          const prompt2=prompt.replace("Generate a detailed 7-day fitness plan JSON","Generate a DIFFERENT 7-day fitness plan JSON for WEEK B - use different exercises than Week A but same split");
+          const full2=await callAI(sys,prompt2,null);
+          const parsed2=extractJSON(full2);
+          setWeekB(parsed2);
+          localStorage.setItem("bym_week_b",JSON.stringify(parsed2));
+        }catch(e){}
+      },1000);
+
+    }catch(err){alert("Error: "+err.message+". Please try again.");}
+    clearInterval(iv);setLoading(false);
+  }
+
+  async function sendChat(){
+    if(!chatIn.trim()||chatLoad)return;
+    const q=chatIn.trim();setChatIn("");
+    setMsgs(m=>[...m,{role:"user",text:q},{role:"ai",text:""}]);
+    setChatLoad(true);
+    const newCount=chatCount+1;setChatCount(newCount);localStorage.setItem("bym_chat_count",String(newCount));
+    try{await callAI(buildSys(),q,(t)=>setMsgs(m=>[...m.slice(0,-1),{role:"ai",text:t}]));}
+    catch(e){setMsgs(m=>[...m.slice(0,-1),{role:"ai",text:"Connection error. Please try again!"}]);}
+    setChatLoad(false);
+  }
+
+  function saveUpdate(){
+    if(!upForm.weight)return;
+    const e={...upForm,date:new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"}),ts:Date.now()};
+    const nu=[...updates,e];setUpdates(nu);
+    localStorage.setItem("bym_updates",JSON.stringify(nu));
+    setUpForm({weight:"",waist:"",chest:"",energy:"Medium",days:""});
+  }
+
+  const TABS=[["home","🏠","Home"],["profile","👤","Profile"],["plan","📋","Plan"],["daily","📅","Daily"],["more","⚡","More"]];
+
+  return(
+    <div style={{minHeight:"100vh",background:"#080808"}}>
+      {/* TOP HEADER */}
+      <div style={{background:"#050505",borderBottom:"1px solid #111",padding:"0 20px",display:"flex",alignItems:"center",justifyContent:"space-between",height:58,position:"sticky",top:0,zIndex:100}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <CrossIcon/>
+          <div>
+            <span style={{fontSize:16,fontWeight:800,color:GOLD,fontFamily:"Georgia,serif"}}>Build Your Muscles</span>
+            <span style={{fontSize:9,color:"#2a2a2a",marginLeft:8,letterSpacing:"1.5px"}}>BY MEL MIRACLE</span>
+          </div>
+        </div>
+        <div className="desktop-nav" style={{display:"flex",gap:2}}>
+          {TABS.map(([id,ic,lb])=>(
+            <button key={id} onClick={()=>setTab(id)} style={{padding:"7px 13px",borderRadius:8,background:tab===id?GOLD:"transparent",color:tab===id?"#080808":"#444",fontSize:12,fontWeight:tab===id?700:400,display:"flex",alignItems:"center",gap:5,transition:"all .25s"}}>
+              <span>{ic}</span>{lb}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="mobile-bottom">
+        {TABS.map(([id,ic,lb])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"none",padding:"6px 2px",color:tab===id?GOLD:"#444"}}>
+            <span style={{fontSize:20}}>{ic}</span>
+            <span style={{fontSize:10,fontWeight:tab===id?700:400}}>{lb}</span>
+          </button>
+        ))}
+      </nav>
+
+      <div className="page-pad" style={{maxWidth:860,margin:"0 auto",padding:"16px 16px 24px"}}>
+
+      {/* ===== HOME ===== */}
+      {tab==="home"&&(
+        <div className="fade-up">
+          {/* Faith Banner */}
+          <div style={{textAlign:"center",padding:"8px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+            <CrossIcon/>
+            <span style={{fontSize:11,color:"#444",letterSpacing:"1px",fontStyle:"italic"}}>"I can do all things through Christ who strengthens me." — Phil 4:13</span>
+            <CrossIcon/>
+          </div>
+
+          <QuoteBanner quote={QUOTES[qIdx]} onNext={()=>setQIdx(i=>(i+1)%QUOTES.length)}/>
+
+          {/* Hero */}
+          <div style={{position:"relative",background:"linear-gradient(135deg,#0d0a00,#0a0800)",border:`1px solid ${GOLD}20`,borderRadius:16,padding:"22px 24px",marginBottom:14,overflow:"hidden"}}>
+            <div style={{position:"absolute",right:16,top:"50%",transform:"translateY(-50%)",fontSize:70,opacity:.04}}>💪</div>
+            <div style={{position:"relative",zIndex:1}}>
+              <div style={{fontSize:9,color:GOLD,letterSpacing:"2px",marginBottom:6}}>WELCOME TO</div>
+              <div style={{fontSize:24,fontWeight:900,color:"#f0e8d8",fontFamily:"Georgia,serif",marginBottom:6}}>Build Your Muscles</div>
+              <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:16}}>Your AI-powered life transformation platform — fitness, mindset, daily planning and more. All in one place.</div>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                <button onClick={()=>setTab(plan?"plan":"profile")} style={{padding:"12px 22px",borderRadius:10,background:GOLD,color:"#080808",fontSize:14,fontWeight:700}}>{plan?"View My Plan →":"Start Your Journey →"}</button>
+                <button onClick={()=>setTab("daily")} style={{padding:"12px 18px",borderRadius:10,background:"transparent",border:`1px solid ${GOLD}33`,color:GOLD,fontSize:14}}>Daily Planner</button>
+              </div>
+            </div>
+          </div>
+
+          <WaterTracker/>
+
+          {/* Feature Grid */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+            {[
+              ["🏋️","Workout Splits","PPL, Upper/Lower, Bro Split, HIIT and more"],
+              ["🍽️","Detailed Diet","Exact grams, food swaps & grocery list"],
+              ["📅","Daily Planner","Build your perfect day with habit tracking"],
+              ["😴","Sleep Tracker","Track and improve your sleep routine"],
+              ["📚","Fitness 101","Complete beginner guide — start here!"],
+              ["🏆","Achievements","Earn badges as you hit your goals"],
+              ["🤖","AI Coach","Ask anything about fitness and health"],
+              ["📊","Progress","BMI chart and weekly body stats"],
+            ].map(([ic,t,d])=>(
+              <GCard key={t} style={{padding:"14px 12px"}}>
+                <div style={{fontSize:20,marginBottom:6}}>{ic}</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#d0c8bc",marginBottom:3,fontFamily:"Georgia,serif"}}>{t}</div>
+                <div style={{fontSize:11,color:"#333",lineHeight:1.5}}>{d}</div>
+              </GCard>
+            ))}
+          </div>
+
+          <div style={{borderTop:"1px solid #111",paddingTop:14,display:"flex",alignItems:"center",gap:12}}>
+            <CrossIcon/>
+            <div style={{fontSize:12,color:"#444",fontFamily:"Georgia,serif",fontStyle:"italic"}}>"{QUOTES[(qIdx+5)%QUOTES.length].q}"</div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== PROFILE ===== */}
+      {tab==="profile"&&(
+        <div className="fade-up">
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:9,color:GOLD,letterSpacing:"2px",marginBottom:6}}>YOUR INFORMATION</div>
+            <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Profile Setup</h1>
+          </div>
+
+          <GCard style={{marginBottom:12}}>
+            <GoldLabel>BASIC INFORMATION</GoldLabel>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>FULL NAME</label><input placeholder="Your name" value={profile.name} onChange={e=>setP("name",e.target.value)}/></div>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>AGE</label><input type="number" placeholder="e.g. 22" value={profile.age} onChange={e=>setP("age",e.target.value)}/></div>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>GENDER</label><select value={profile.gender} onChange={e=>setP("gender",e.target.value)}><option>Male</option><option>Female</option><option>Other</option></select></div>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>ACTIVITY</label><select value={profile.activity} onChange={e=>setP("activity",e.target.value)}><option value="Sedentary">Sedentary</option><option value="Light">Light</option><option value="Moderate">Moderate</option><option value="Active">Active</option><option value="Very Active">Very Active</option></select></div>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>HEIGHT (cm)</label><input type="number" placeholder="e.g. 175" value={profile.height} onChange={e=>setP("height",e.target.value)}/></div>
+              <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>WEIGHT (kg)</label><input type="number" placeholder="e.g. 75" value={profile.weight} onChange={e=>setP("weight",e.target.value)}/></div>
+            </div>
+            {bmi&&<div style={{display:"flex",alignItems:"center",gap:14,padding:"12px",background:"#080808",borderRadius:10,border:"1px solid #1a1a1a"}}>
+              <div style={{fontSize:32,fontWeight:900,fontFamily:"Georgia,serif",color:bmi<18.5?"#378ADD":bmi<25?GOLD:bmi<30?"#E8A030":"#E24B4A"}}>{bmi}</div>
+              <div><div style={{fontSize:14,color:"#ccc",fontWeight:600}}>{bmi<18.5?"Underweight":bmi<25?"Healthy Weight":bmi<30?"Overweight":"Obese"}</div><div style={{fontSize:11,color:"#444"}}>Your BMI</div></div>
+            </div>}
+          </GCard>
+
+          <GCard style={{marginBottom:12}}>
+            <GoldLabel>WORKOUT SPLIT</GoldLabel>
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
+              {WORKOUT_TYPES.map(w=>(
+                <div key={w.id} onClick={()=>setP("workoutType",w.id)} style={{padding:"12px 14px",borderRadius:12,border:`1px solid ${profile.workoutType===w.id?GOLD+"55":"#1a1a1a"}`,background:profile.workoutType===w.id?"#0d0900":"#0a0a0a",cursor:"pointer",transition:"all .2s"}}>
+                  <div style={{fontSize:14,fontWeight:700,color:profile.workoutType===w.id?GOLD:"#aaa",marginBottom:3}}>{w.name}</div>
+                  <div style={{fontSize:12,color:"#444",lineHeight:1.4}}>{w.desc}</div>
+                </div>
+              ))}
+            </div>
+            <GoldLabel>YOUR GOAL</GoldLabel>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{GOALS.map(g=><Tag key={g} label={g} active={profile.goal===g} onClick={()=>setP("goal",g)}/>)}</div>
+          </GCard>
+
+          {/* Body Type Section with Quiz */}
+          <GCard style={{marginBottom:12}}>
+            <GoldLabel>BODY TYPE</GoldLabel>
+            {!profile.showQuiz?(
+              <>
+                <div style={{display:"flex",gap:10,marginBottom:12}}>
+                  {Object.entries(btExamples).map(([key,bt])=>(
+                    <div key={key} style={{flex:1,padding:"12px 8px",borderRadius:12,textAlign:"center",cursor:"pointer",border:`1px solid ${profile.currentType===key||profile.targetType===key?GOLD+"44":"#1a1a1a"}`,background:profile.currentType===key||profile.targetType===key?"#0d0900":"#0a0a0a",transition:"all .2s"}}
+                      onClick={()=>{if(profile.currentType!==key)setP("currentType",key);else setP("targetType",key);}}>
+                      <div style={{fontSize:22,marginBottom:6}}>{bt.icon}</div>
+                      <div style={{fontSize:12,fontWeight:700,color:profile.currentType===key||profile.targetType===key?GOLD:"#444"}}>{bt.label}</div>
+                      <div style={{fontSize:10,color:"#2a2a2a",marginTop:2}}>{bt.desc}</div>
+                      {profile.currentType===key&&<div style={{fontSize:9,color:GOLD,marginTop:5}}>CURRENT</div>}
+                      {profile.targetType===key&&profile.currentType!==key&&<div style={{fontSize:9,color:"#917a36",marginTop:5}}>TARGET</div>}
+                    </div>
+                  ))}
+                </div>
+                <div style={{background:"#111",borderRadius:10,padding:"12px 14px",marginBottom:10}}>
+                  <div style={{fontSize:11,color:GOLD,marginBottom:6}}>💡 What is {btExamples[profile.currentType]?.label}?</div>
+                  <div style={{fontSize:12,color:"#777",lineHeight:1.5,marginBottom:6}}>{btExamples[profile.currentType]?.example}</div>
+                  <div style={{fontSize:12,color:"#5a8a5a",lineHeight:1.5}}>✓ Your tip: {btExamples[profile.currentType]?.tip}</div>
+                </div>
+                <button onClick={()=>setP("showQuiz",true)} style={{padding:"10px 18px",borderRadius:10,background:"transparent",border:`1px solid ${GOLD}33`,color:GOLD,fontSize:13}}>Not sure? Take the Body Type Quiz →</button>
+              </>
+            ):(
+              <BodyTypeQuiz onResult={(type)=>{setP("currentType",type);setP("showQuiz",false);}}/>
+            )}
+          </GCard>
+
+          <GCard style={{marginBottom:12}}>
+            <GoldLabel>DIET PREFERENCE</GoldLabel>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:14}}>{DIETS.map(d=><Tag key={d} label={d} active={profile.dietPref===d} onClick={()=>setP("dietPref",d)}/>)}</div>
+            <GoldLabel>DIETARY RESTRICTIONS</GoldLabel>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{["None","Vegetarian","Vegan","Gluten-Free","Dairy-Free","Halal","Kosher","Nut Allergy"].map(r=><Tag key={r} label={r} active={profile.restriction===r} color="#6aa6cc" onClick={()=>setP("restriction",r)}/>)}</div>
+          </GCard>
+
+          <GCard style={{marginBottom:20,border:profile.condition!=="None"?"1px solid #1a3a5a":"1px solid #1a1a1a"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+              <span style={{fontSize:16}}>🩺</span><span style={{fontSize:10,color:"#444",letterSpacing:"1.5px"}}>HEALTH CONDITIONS</span>
+              {profile.condition!=="None"&&<span style={{fontSize:9,background:"#6aa6cc20",color:"#6aa6cc",padding:"3px 10px",borderRadius:10,marginLeft:"auto"}}>PLAN ADAPTED</span>}
+            </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{CONDITIONS.map(c=><Tag key={c} label={c} active={profile.condition===c} color="#6aa6cc" onClick={()=>setP("condition",c)}/>)}</div>
+          </GCard>
+
+          <button onClick={generatePlan} disabled={loading} style={{width:"100%",padding:18,borderRadius:14,background:loading?"#1a1100":GOLD,color:loading?GOLD:"#080808",fontSize:16,fontWeight:800,letterSpacing:"0.5px",fontFamily:"Georgia,serif",display:"flex",alignItems:"center",justifyContent:"center",gap:10,transition:"all .25s"}}>
+            {loading?<><Spin/> {loadMsg}</>:<><CrossIcon/> Generate My Personalised Plan</>}
+          </button>
+        </div>
+      )}
+
+      {/* ===== PLAN ===== */}
+      {tab==="plan"&&(
+        <div className="fade-up">
+          {!plan?(
+            <div style={{textAlign:"center",padding:"60px 20px"}}>
+              <div style={{fontSize:48,marginBottom:14}}>📋</div>
+              <div style={{color:"#444",fontFamily:"Georgia,serif",fontSize:16,marginBottom:18}}>No plan yet — complete your profile first!</div>
+              <button onClick={()=>setTab("profile")} style={{padding:"14px 28px",borderRadius:12,background:GOLD,color:"#080808",fontSize:15,fontWeight:700}}>Complete Your Profile →</button>
+            </div>
+          ):(
+            <>
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:9,color:GOLD,letterSpacing:"2px",marginBottom:6}}>YOUR PERSONALISED PLAN</div>
+                <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>{profile.name?"For "+profile.name+" 👋":"Your Fitness Plan"}</h1>
+                <p style={{color:"#555",fontSize:13,marginTop:6,lineHeight:1.7}}>{plan.summary}</p>
+              </div>
+
+              {plan.conditionNote&&plan.conditionNote.length>4&&<div style={{background:"#060d14",border:"1px solid #1a3a5a",borderRadius:12,padding:"13px 17px",marginBottom:14}}><div style={{fontSize:9,color:"#6aa6cc",letterSpacing:"1.5px",marginBottom:5}}>🩺 CONDITION NOTE</div><div style={{fontSize:12,color:"#5a8aaa",lineHeight:1.7}}>{plan.conditionNote}</div></div>}
+
+              {/* Macros */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:14}}>
+                {[["🔥","CALORIES",plan.calories,"kcal/day"],["🥩","PROTEIN",plan.protein+"g","per day"],["🌾","CARBS",plan.carbs+"g","per day"],["🥑","FAT",plan.fat+"g","per day"]].map(([ic,lb,v,sub])=>(
+                  <div key={lb} style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:12,padding:"14px 12px",textAlign:"center"}}>
+                    <div style={{fontSize:20,marginBottom:5}}>{ic}</div>
+                    <div style={{fontSize:9,color:"#444",letterSpacing:"1px",marginBottom:3}}>{lb}</div>
+                    <div style={{fontSize:22,fontWeight:900,color:GOLD,fontFamily:"Georgia,serif"}}>{v}</div>
+                    <div style={{fontSize:11,color:"#333",marginTop:2}}>{sub}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Protein foods */}
+              {plan.proteinFoods&&<GCard style={{marginBottom:14}}>
+                <div style={{fontSize:10,color:GOLD,letterSpacing:"1.5px",marginBottom:8}}>🥩 BEST PROTEIN SOURCES FOR YOU</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{plan.proteinFoods.split(",").map(f=><span key={f} style={{padding:"6px 12px",background:"#111",borderRadius:20,fontSize:12,color:"#888",border:"1px solid #222"}}>{f.trim()}</span>)}</div>
+              </GCard>}
+
+              {/* Diet note */}
+              {plan.dietTypeNote&&<GCard hi style={{marginBottom:14}}><div style={{fontSize:9,color:GOLD,letterSpacing:"1.5px",marginBottom:6}}>🍽 {profile.dietPref?.toUpperCase()}</div><div style={{fontSize:13,color:"#777",lineHeight:1.65}}>{plan.dietTypeNote}</div></GCard>}
+
+              {/* Grocery List */}
+              {plan.groceryList&&plan.groceryList.length>0&&<GCard style={{marginBottom:14}}>
+                <div style={{fontSize:10,color:GOLD,letterSpacing:"1.5px",marginBottom:10}}>🛒 WEEKLY GROCERY LIST</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                  {plan.groceryList.map((item,i)=>(
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#888"}}>
+                      <span style={{color:GOLD}}>✓</span>{item}
+                    </div>
+                  ))}
+                </div>
+              </GCard>}
+
+              {/* Week tabs */}
+              <div style={{display:"flex",gap:8,marginBottom:12}}>
+                {["plan","weekb"].map(t=>(
+                  <button key={t} onClick={()=>setSubTab(t)} style={{padding:"8px 18px",borderRadius:10,background:subTab===t?GOLD:"#111",color:subTab===t?"#080808":"#555",fontSize:13,fontWeight:subTab===t?700:400,border:`1px solid ${subTab===t?GOLD:"#222"}`,transition:"all .2s"}}>
+                    {t==="plan"?"Week A (Current)":weekB?"Week B (Next Week)":"Week B Loading..."}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{fontSize:9,color:"#444",letterSpacing:"2px",marginBottom:12}}>7-DAY WORKOUT AND DIET PLAN — TAP TO EXPAND</div>
+              {(subTab==="plan"?plan:weekB||plan).weekPlan?.map((d,i)=><DayCard key={i} day={d} weekLabel={subTab==="weekb"?"WEEK B":null}/>)}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ===== DAILY PLANNER ===== */}
+      {tab==="daily"&&(
+        <div className="fade-up">
+          {/* Sub tabs */}
+          <div style={{display:"flex",gap:6,marginBottom:16,overflowX:"auto",paddingBottom:4}}>
+            {[["habits","📅 Daily Habits"],["progress","📈 Progress"],["achievements","🏆 Achievements"]].map(([t,lb])=>(
+              <button key={t} onClick={()=>setSubTab(t)} style={{padding:"8px 14px",borderRadius:10,background:subTab===t?GOLD:"#111",color:subTab===t?"#080808":"#555",fontSize:13,fontWeight:subTab===t?700:400,border:`1px solid ${subTab===t?GOLD:"#222"}`,whiteSpace:"nowrap",flexShrink:0}}>
+                {lb}
+              </button>
+            ))}
+          </div>
+          {(subTab==="habits"||subTab==="plan")&&<HabitTracker/>}
+          {subTab==="progress"&&(
+            <div>
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:9,color:GOLD,letterSpacing:"2px",marginBottom:6}}>TRACK YOUR JOURNEY</div>
+                <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Body Progress</h1>
+              </div>
+              <BMIChart updates={updates} currentBMI={bmi}/>
+              <GCard style={{marginBottom:14}}>
+                <GoldLabel>LOG THIS WEEK</GoldLabel>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+                  <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>WEIGHT (kg)*</label><input type="number" placeholder="e.g. 74" value={upForm.weight} onChange={e=>setUpForm(f=>({...f,weight:e.target.value}))}/></div>
+                  <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>WAIST (cm)</label><input type="number" placeholder="optional" value={upForm.waist} onChange={e=>setUpForm(f=>({...f,waist:e.target.value}))}/></div>
+                  <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>ENERGY</label><select value={upForm.energy} onChange={e=>setUpForm(f=>({...f,energy:e.target.value}))}><option>Low</option><option>Medium</option><option>High</option></select></div>
+                  <div><label style={{fontSize:11,color:"#444",display:"block",marginBottom:5}}>WORKOUT DAYS</label><input type="number" min="0" max="7" placeholder="e.g. 5" value={upForm.days} onChange={e=>setUpForm(f=>({...f,days:e.target.value}))}/></div>
+                </div>
+                <button onClick={saveUpdate} style={{width:"100%",padding:"14px",borderRadius:12,background:GOLD,color:"#080808",fontSize:15,fontWeight:700}}>Save This Week</button>
+              </GCard>
+              {updates.length>=2&&<div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
+                {[["Weight Change",+(updates[updates.length-1].weight-updates[0].weight).toFixed(1)+"kg"],["Weeks",updates.length],["Energy",updates[updates.length-1].energy]].map(([l,v])=>(
+                  <div key={l} style={{background:"#0a0a0a",border:"1px solid #1a1a1a",borderRadius:12,padding:"12px",textAlign:"center"}}>
+                    <div style={{fontSize:9,color:"#444",letterSpacing:"1px",marginBottom:4}}>{l.toUpperCase()}</div>
+                    <div style={{fontSize:20,fontWeight:900,color:GOLD,fontFamily:"Georgia,serif"}}>{v}</div>
+                  </div>
+                ))}
+              </div>}
+              {updates.length===0?<div style={{textAlign:"center",padding:"40px",color:"#222",fontFamily:"Georgia,serif"}}>Log your first week above.</div>:(
+                <div>
+                  <div style={{fontSize:9,color:"#444",letterSpacing:"2px",marginBottom:10}}>HISTORY</div>
+                  {[...updates].reverse().map((u,i)=>{
+                    const rev=[...updates].reverse();const prev=i<rev.length-1?rev[i+1]:null;
+                    const diff=prev?+(u.weight-prev.weight).toFixed(1):null;
+                    return(
+                      <div key={i} style={{background:"#0d0d0d",border:"1px solid #161616",borderRadius:12,padding:"12px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:14}}>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:11,color:"#2a2a2a",marginBottom:4}}>{u.date}</div>
+                          <div style={{display:"flex",flexWrap:"wrap",gap:10,alignItems:"center"}}>
+                            <span style={{fontSize:20,fontWeight:900,color:GOLD,fontFamily:"Georgia,serif"}}>{u.weight}kg</span>
+                            {u.waist&&<span style={{fontSize:12,color:"#444"}}>Waist {u.waist}cm</span>}
+                            <span style={{fontSize:12,color:"#444"}}>Energy: {u.energy}</span>
+                            {u.days&&<span style={{fontSize:12,color:"#444"}}>{u.days}/7 days</span>}
+                          </div>
+                        </div>
+                        {diff!==null&&<div style={{textAlign:"center",minWidth:50}}>
+                          <div style={{fontSize:15,fontWeight:900,fontFamily:"Georgia,serif",color:diff<0?"#6aaa3a":diff>0?"#E24B4A":"#555"}}>{diff>0?"+":""}{diff}kg</div>
+                          <div style={{fontSize:9,color:"#2a2a2a"}}>VS PREV</div>
+                        </div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+          {subTab==="achievements"&&<Achievements plan={plan} updates={updates} chatCount={chatCount}/>}
+        </div>
+      )}
+
+      {/* ===== MORE ===== */}
+      {tab==="more"&&(
+        <div className="fade-up">
+          <div style={{display:"flex",gap:8,marginBottom:16,overflowX:"auto",paddingBottom:4}}>
+            {[["guide","📚 Fitness 101"],["water","💧 Water"],["chat","🤖 AI Coach"]].map(([t,lb])=>(
+              <button key={t} onClick={()=>setSubTab(t)} style={{padding:"8px 14px",borderRadius:10,background:subTab===t?GOLD:"#111",color:subTab===t?"#080808":"#555",fontSize:13,fontWeight:subTab===t?700:400,border:`1px solid ${subTab===t?GOLD:"#222"}`,whiteSpace:"nowrap",flexShrink:0}}>{lb}</button>
+            ))}
+          </div>
+
+          {subTab==="guide"&&<BeginnerGuide/>}
+
+          {subTab==="water"&&(
+            <div>
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:9,color:GOLD,letterSpacing:"2px",marginBottom:6}}>STAY HYDRATED</div>
+                <h1 style={{fontSize:22,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Water Tracker</h1>
+              </div>
+              <WaterTracker/>
+              <GCard>
+                <GoldLabel>HYDRATION TIPS</GoldLabel>
+                {[["Drink first thing","Have 1 full glass of water the moment you wake up every morning."],["Pre-workout","Drink 500ml water 30 minutes before every workout."],["During workout","Sip water every 15 minutes during exercise."],["With meals","Drink a glass of water with every meal to aid digestion."],["Dehydration signs","Headache, fatigue, dark yellow urine — drink more water!"]].map(([t,d])=>(
+                  <div key={t} style={{display:"flex",gap:10,marginBottom:10}}>
+                    <span style={{color:GOLD,flexShrink:0}}>💧</span>
+                    <div><div style={{fontSize:13,color:"#ccc",fontWeight:600,marginBottom:2}}>{t}</div><div style={{fontSize:12,color:"#555",lineHeight:1.5}}>{d}</div></div>
+                  </div>
+                ))}
+              </GCard>
+            </div>
+          )}
+
+          {subTab==="chat"&&(
+            <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 180px)"}}>
+              <div style={{marginBottom:12}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}><CrossIcon/><div style={{fontSize:9,color:GOLD,letterSpacing:"2px"}}>MEL MIRACLE AI COACH</div></div>
+                <h1 style={{fontSize:20,fontWeight:800,color:"#f0e8d8",fontFamily:"Georgia,serif"}}>Ask Me Anything</h1>
+                <p style={{fontSize:11,color:"#333",marginTop:3}}>Fitness, diet, sleep, mindset — I am here to help!</p>
+              </div>
+              <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:10,paddingBottom:14}}>
+                {msgs.map((m,i)=>(
+                  <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}>
+                    {m.role==="ai"&&<div style={{width:32,height:32,borderRadius:"50%",background:"#0d0900",border:`1px solid ${GOLD}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,marginRight:8,flexShrink:0,marginTop:2}}>💪</div>}
+                    <div style={{maxWidth:"80%",padding:"12px 16px",borderRadius:m.role==="user"?"16px 16px 4px 16px":"4px 16px 16px 16px",background:m.role==="user"?GOLD:"#0f0f0f",color:m.role==="user"?"#080808":"#c8c0b4",fontSize:14,lineHeight:1.7,border:m.role==="ai"?"1px solid #1a1a1a":"none",whiteSpace:"pre-wrap"}}>
+                      {m.text||<Spin/>}
+                    </div>
+                  </div>
+                ))}
+                <div ref={chatEndRef}/>
+              </div>
+              <div style={{borderTop:"1px solid #111",paddingTop:12,display:"flex",gap:8}}>
+                <input value={chatIn} onChange={e=>setChatIn(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&sendChat()} placeholder="Ask about workouts, diet, sleep, mindset..." style={{flex:1}}/>
+                <button onClick={sendChat} disabled={chatLoad||!chatIn.trim()} style={{padding:"12px 18px",borderRadius:10,fontWeight:700,fontSize:14,transition:"all .2s",background:chatLoad||!chatIn.trim()?"#111":GOLD,color:chatLoad||!chatIn.trim()?"#333":"#080808"}}>
+                  {chatLoad?<Spin/>:"Send"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
